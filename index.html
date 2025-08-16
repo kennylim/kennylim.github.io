@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ken L. - Data Architect & Big Data Consultant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+        }
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Navigation -->
+    <nav class="navbar fixed top-0 w-full p-4 flex justify-between items-center">
+        <div class="text-2xl font-bold">Ken L.</div>
+        <div class="space-x-4">
+            <button class="tab-link text-gray-300 hover:text-white" onclick="openTab('home')">Home</button>
+            <button class="tab-link text-gray-300 hover:text-white" onclick="openTab('blog')">Blog</button>
+            <button class="tab-link text-gray-300 hover:text-white" onclick="openTab('photos')">Photos</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 pt-20 pb-8">
+        <!-- Home Tab -->
+        <div id="home" class="tab-content active">
+            <section class="max-w-3xl mx-auto text-center">
+                <h1 class="text-4xl font-bold mb-4">Ken L.</h1>
+                <h2 class="text-xl text-gray-400 mb-6">Data Architect & Big Data Consultant</h2>
+                <p class="text-lg">
+                    Ken L. is a seasoned Data Architect and Big Data Consultant with over 18 years of experience in designing and implementing robust data solutions. With a proven track record in data engineering, big data analytics, and system architecture, Ken has driven impactful projects across various industries. His expertise includes leveraging cutting-edge technologies to optimize data pipelines and enhance decision-making processes. A member of prestigious organizations like ACM and AAAI, Ken is passionate about advancing AI and data science, complemented by his commitment to social good through volunteering with Operation Shanti.
+                </p>
+            </section>
+        </div>
+
+        <!-- Blog Tab -->
+        <div id="blog" class="tab-content">
+            <section class="max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold mb-6">Blog Articles</h2>
+                <div class="space-y-4">
+                    <article class="p-4 bg-gray-900 rounded-lg">
+                        <h3 class="text-xl font-semibold">The Future of Data Architecture</h3>
+                        <p class="text-gray-400">Exploring emerging trends in data architecture and their implications for scalable systems.</p>
+                        <a href="#" class="text-blue-400 hover:underline">Read More</a>
+                    </article>
+                    <article class="p-4 bg-gray-900 rounded-lg">
+                        <h3 class="text-xl font-semibold">Big Data in 2025: Challenges and Opportunities</h3>
+                        <p class="text-gray-400">A deep dive into the evolving landscape of big data and how businesses can adapt.</p>
+                        <a href="#" class="text-blue-400 hover:underline">Read More</a>
+                    </article>
+                </div>
+            </section>
+        </div>
+
+        <!-- Photos Tab -->
+        <div id="photos" class="tab-content">
+            <section class="max-w-3xl mx-auto">
+                <h2 class="text-3xl font-bold mb-6">Photo Journal</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-gray-900 rounded-lg overflow-hidden">
+                        <img src="https://via.placeholder.com/400x300" alt="Photo 1" class="w-full h-48 object-cover">
+                        <p class="p-4 text-gray-400">Exploring data conferences in 2025.</p>
+                    </div>
+                    <div class="bg-gray-900 rounded-lg overflow-hidden">
+                        <img src="https://via.placeholder.com/400x300" alt="Photo 2" class="w-full h-48 object-cover">
+                        <p class="p-4 text-gray-400">Volunteering with Operation Shanti.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 p-4 text-center text-gray-400">
+        <p>&copy; 2025 Ken L. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function openTab(tabName) {
+            const tabs = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabs.length; i++) {
+                tabs[i].classList.remove('active');
+            }
+            document.getElementById(tabName).classList.add('active');
+        }
+    </script>
+</body>
+</html>
