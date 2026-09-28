@@ -1,0 +1,184 @@
+---
+interface Node { x: number; y: number; w: number; h: number; t1: string; t2?: string; accent?: "sage" | "clay" }
+interface Edge { x1: number; y1: number; x2: number; y2: number; l?: string; dashed?: boolean; clay?: boolean }
+interface Note { x: number; y: number; t: string; clay?: boolean; sage?: boolean; anchor?: "start" | "middle" | "end" }
+interface Kind { nodes: Node[]; edges: Edge[]; notes: Note[]; vb: string }
+
+const kinds: Record<string, Kind> = {
+  oltp: {
+    vb: "0 0 640 150",
+    nodes: [
+      { x: 20, y: 42, w: 120, h: 46, t1: "apps", t2: "users & services" },
+      { x: 250, y: 36, w: 170, h: 58, t1: "the database", t2: "B+tree · WAL · ACID", accent: "sage" },
+      { x: 490, y: 42, w: 130, h: 46, t1: "midnight reports" },
+    ],
+    edges: [
+      { x1: 140, y1: 65, x2: 250, y2: 65, l: "SQL txns" },
+      { x1: 490, y1: 65, x2: 420, y2: 65, clay: true, l: "full scans" },
+    ],
+    notes: [{ x: 320, y: 125, t: "one row update and one year aggregation fight over the same pages — locks, stalls, “run it Sunday”", clay: true, anchor: "middle" }],
+  },
+  warehouse: {
+    vb: "0 0 640 150",
+    nodes: [
+      { x: 16, y: 40, w: 120, h: 46, t1: "prod DBs" },
+      { x: 200, y: 40, w: 120, h: 46, t1: "ETL", t2: "nightly batch" },
+      { x: 396, y: 34, w: 150, h: 58, t1: "data warehouse", t2: "facts · dims · cubes", accent: "sage" },
+      { x: 580, y: 40, w: 44, h: 46, t1: "BI" },
+    ],
+    edges: [
+      { x1: 136, y1: 63, x2: 200, y2: 63 },
+      { x1: 320, y1: 63, x2: 396, y2: 63 },
+      { x1: 546, y1: 63, x2: 580, y2: 63 },
+    ],
+    notes: [{ x: 320, y: 125, t: "production is safe — but the truth in the warehouse is yesterday’s, and the second copy drifts", clay: true, anchor: "middle" }],
+  },
+  lake: {
+    vb: "0 0 640 150",
+    nodes: [
+      { x: 16, y: 22, w: 130, h: 30, t1: "logs" },
+      { x: 16, y: 58, w: 130, h: 30, t1: "clickstream" },
+      { x: 16, y: 94, w: 130, h: 30, t1: "db dumps · files" },
+      { x: 240, y: 40, w: 180, h: 60, t1: "HDFS / S3", t2: "raw files · schema-on-read", accent: "sage" },
+      { x: 500, y: 24, w: 120, h: 34, t1: "Hive / Spark" },
+      { x: 500, y: 82, w: 120, h: 34, t1: "notebooks" },
+    ],
+    edges: [
+      { x1: 146, y1: 37, x2: 240, y2: 62 },
+      { x1: 146, y1: 73, x2: 240, y2: 71 },
+      { x1: 146, y1: 109, x2: 240, y2: 80 },
+      { x1: 420, y1: 60, x2: 500, y2: 42 },
+      { x1: 420, y1: 82, x2: 500, y2: 98 },
+    ],
+    notes: [{ x: 330, y: 138, t: "no ACID · no constraints · partitions found by archaeology — welcome to the swamp", clay: true, anchor: "middle" }],
+  },
+  clouddw: {
+    vb: "0 0 640 150",
+    nodes: [
+      { x: 20, y: 20, w: 150, h: 52, t1: "cloud DW", t2: "columnar on S3 · elastic MPP", accent: "sage" },
+      { x: 20, y: 88, w: 150, h: 44, t1: "data lake", t2: "for ML & scientists" },
+      { x: 280, y: 30, w: 130, h: 36, t1: "dashboards" },
+      { x: 280, y: 92, w: 130, h: 36, t1: "models" },
+      { x: 490, y: 55, w: 130, h: 46, t1: "the toll", t2: "copy · export · re-govern", clay: true },
+    ],
+    edges: [
+      { x1: 170, y1: 46, x2: 280, y2: 46 },
+      { x1: 170, y1: 110, x2: 280, y2: 110 },
+      { x1: 95, y1: 72, x2: 95, y2: 88, clay: true },
+      { x1: 410, y1: 60, x2: 490, y2: 74, clay: true },
+      { x1: 410, y1: 102, x2: 490, y2: 92, clay: true },
+    ],
+    notes: [{ x: 320, y: 143, t: "SQL scaled beautifully; the estate still split in two — and ML paid the bridge toll", clay: true, anchor: "middle" }],
+  },
+  lakehouse: {
+    vb: "0 0 640 160",
+    nodes: [
+      { x: 190, y: 100, w: 260, h: 36, t1: "object storage — Parquet / ORC files" },
+      { x: 225, y: 56, w: 190, h: 32, t1: "transaction log — ACID snapshots", accent: "sage" },
+      { x: 40, y: 10, w: 130, h: 36, t1: "Trino / SQL" },
+      { x: 260, y: 10, w: 130, h: 36, t1: "Spark / batch" },
+      { x: 480, y: 10, w: 130, h: 36, t1: "ML · notebooks" },
+    ],
+    edges: [
+      { x1: 320, y1: 100, x2: 320, y2: 88 },
+      { x1: 300, y1: 56, x2: 130, y2: 46 },
+      { x1: 320, y1: 56, x2: 325, y2: 46 },
+      { x1: 340, y1: 56, x2: 530, y2: 46 },
+    ],
+    notes: [
+      { x: 320, y: 152, t: "one copy · time travel · schema evolution — the CIDR’21 bet, on one vendor’s formats & catalog", sage: true, anchor: "middle" },
+    ],
+  },
+  lakehouse2: {
+    vb: "0 0 640 160",
+    nodes: [
+      { x: 150, y: 96, w: 340, h: 36, t1: "Iceberg tables — any storage, any cloud" },
+      { x: 170, y: 52, w: 300, h: 32, t1: "open catalog — REST spec", accent: "sage" },
+      { x: 16, y: 8, w: 105, h: 32, t1: "Spark" },
+      { x: 136, y: 8, w: 105, h: 32, t1: "Trino" },
+      { x: 256, y: 8, w: 105, h: 32, t1: "Flink" },
+      { x: 376, y: 8, w: 105, h: 32, t1: "DuckDB" },
+      { x: 496, y: 8, w: 128, h: 32, t1: "…anything conforming" },
+    ],
+    edges: [
+      { x1: 68, y1: 40, x2: 230, y2: 52 },
+      { x1: 188, y1: 40, x2: 260, y2: 52 },
+      { x1: 308, y1: 40, x2: 350, y2: 52 },
+      { x1: 428, y1: 40, x2: 400, y2: 52 },
+      { x1: 560, y1: 40, x2: 450, y2: 52 },
+      { x1: 320, y1: 84, x2: 320, y2: 96 },
+    ],
+    notes: [
+      { x: 320, y: 152, t: "engine choice = config, not migration · governance in the catalog: Polaris · Unity · Lakekeeper", sage: true, anchor: "middle" },
+    ],
+  },
+  lakebase: {
+    vb: "0 0 640 170",
+    nodes: [
+      { x: 12, y: 12, w: 120, h: 32, t1: "apps" },
+      { x: 12, y: 50, w: 120, h: 32, t1: "agents", accent: "sage" },
+      { x: 200, y: 18, w: 150, h: 56, t1: "Postgres compute", t2: "stateless · ms latency · ACID", accent: "sage" },
+      { x: 200, y: 96, w: 150, h: 40, t1: "branching", t2: "copy-on-write", accent: "sage" },
+      { x: 420, y: 30, w: 110, h: 36, t1: "WAL · pages" },
+      { x: 420, y: 82, w: 110, h: 36, t1: "Iceberg tables" },
+      { x: 560, y: 44, w: 68, h: 56, t1: "S3", accent: "sage" },
+    ],
+    edges: [
+      { x1: 132, y1: 28, x2: 200, y2: 36 },
+      { x1: 132, y1: 66, x2: 200, y2: 58 },
+      { x1: 275, y1: 74, x2: 275, y2: 96 },
+      { x1: 350, y1: 48, x2: 420, y2: 48 },
+      { x1: 475, y1: 66, x2: 475, y2: 82 },
+      { x1: 530, y1: 48, x2: 560, y2: 66 },
+      { x1: 530, y1: 100, x2: 560, y2: 86 },
+    ],
+    notes: [
+      { x: 320, y: 160, t: "the last copy dies here — transactional rows and lake tables share one substrate, one catalog, one governance", sage: true, anchor: "middle" },
+    ],
+  },
+};
+
+const k = kinds[Astro.props.kind];
+interface Props { kind: string; caption: string }
+const { caption } = Astro.props;
+const stroke = "currentColor";
+---
+<figure class="not-prose my-8">
+  <svg viewBox={k.vb} role="img" style="width:100%;height:auto;font-family:ui-sans-serif,system-ui,sans-serif" aria-label={caption}>
+    <defs>
+      <marker id="arr-{Astro.props.kind}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0 0L10 5L0 10z" fill={stroke} opacity="0.5"/>
+      </marker>
+      <marker id="arrc-{Astro.props.kind}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0 0L10 5L0 10z" fill="#a9705c"/>
+      </marker>
+    </defs>
+    {k.nodes.map((n) => (
+      <g>
+        <rect x={n.x} y={n.y} width={n.w} height={n.h} rx="7"
+          fill={n.accent === "sage" ? "#93a883" : n.accent === "clay" ? "#a9705c" : stroke}
+          fill-opacity={n.accent ? "0.14" : "0.06"}
+          stroke={n.accent === "sage" ? "#7d8f6f" : n.accent === "clay" ? "#a9705c" : stroke}
+          stroke-opacity="0.55" stroke-width="1.2" />
+        <text x={n.x + n.w / 2} y={n.y + (n.t2 ? n.h / 2 - 2 : n.h / 2 + 4)} text-anchor="middle" font-size="11.5" fill={stroke}>{n.t1}</text>
+        {n.t2 && <text x={n.x + n.w / 2} y={n.y + n.h / 2 + 13} text-anchor="middle" font-size="9.5" fill={stroke} opacity="0.6">{n.t2}</text>}
+      </g>
+    ))}
+    {k.edges.map((e) => (
+      <g>
+        <line x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
+          stroke={e.clay ? "#a9705c" : stroke} stroke-width="1.2"
+          stroke-dasharray={e.dashed ? "4 4" : undefined}
+          opacity={e.clay ? "0.8" : "0.45"}
+          marker-end={e.clay ? `url(#arrc-${Astro.props.kind})` : `url(#arr-${Astro.props.kind})`} />
+        {e.l && (
+          <text x={(e.x1 + e.x2) / 2} y={(e.y1 + e.y2) / 2 - 6} text-anchor="middle" font-size="9.5" fill={e.clay ? "#a9705c" : stroke} opacity="0.75">{e.l}</text>
+        )}
+      </g>
+    ))}
+    {k.notes.map((n) => (
+      <text x={n.x} y={n.y} text-anchor={n.anchor ?? "start"} font-size="10.5" font-style="italic" fill={n.clay ? "#a9705c" : n.sage ? "#7d8f6f" : stroke} opacity="0.9">{n.t}</text>
+    ))}
+  </svg>
+  <figcaption class="mt-2 text-center text-xs text-stone-500 dark:text-stone-400">{caption}</figcaption>
+</figure>

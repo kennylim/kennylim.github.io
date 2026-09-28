@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* class-based dark mode (the theme toggle sets .dark on <html>) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* the A4 sheet: square edges on mobile, deckled top hint */
+.sheet {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 24px 48px -16px rgba(0, 0, 0, 0.18);
+}
+.dark .sheet {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 24px 48px -16px rgba(0, 0, 0, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
