@@ -1,5 +1,8 @@
 ---
+import cmuLogo from "../assets/cmu.png?url";
+import usbankLogo from "../assets/usbank.png?url";
 interface Stop { co: string; role: string; txt?: string; items?: string[]; urls?: string[]; mark: string; interchange?: string; latest?: boolean }
+const logoFor = (host: string) => host.includes("cmu.edu") ? cmuLogo : host.includes("usbank.com") ? usbankLogo : null;
 const accent = "#93a883"; // one color, matching the What I do panel
 const work: Stop[] = [
   { co: "International Atomic Energy Agency", role: "Senior Data Engineer / Architect · Vienna", mark: "IA", urls: ["https://www.iaea.org"], latest: true,
@@ -11,15 +14,15 @@ const work: Stop[] = [
     ] },
   { co: "Reach Financial", role: "Lead Data Engineer · New York", mark: "RF", urls: ["https://www.reachfinancial.com"],
     txt: "Technical lead and hands-on engineer: owned data strategy and roadmap while writing production code. Delivered AI products for credit scoring, loan origination and risk assessment, supplying the ML team with contract-tested feature tables. Built production Snowflake, dbt and Dagster pipelines and a domain-driven Data Mesh; resolved a persistent Salesforce-to-Snowflake dynamic pricing sync issue." },
-  { co: "Kaia Health", role: "Lead Data Engineer · New York", mark: "KH", urls: ["https://www.kaiahealth.com"], interchange: "acquired by Sword Health",
+  { co: "Kaia Health", role: "Lead Data Engineer · New York · HQ Munich", mark: "KH", urls: ["https://www.kaiahealth.com"], interchange: "acquired by Sword Health",
     txt: "Technical lead: architected, developed and operated the production Snowflake platform behind AI-driven musculoskeletal therapy. Led the Redshift-to-Snowflake migration end to end, designing Medallion and Lambda architectures for AI model training. Built Airflow and dbt pipelines feeding proprietary AI algorithms, with Great Expectations checks guarding production ML models." },
   { co: "Thinx", role: "Lead Data Engineer · New York", mark: "TX", urls: ["https://shethinx.com"], interchange: "acquired by Kimberly-Clark",
     txt: "Architected and developed the data platform from scratch on Airflow, AWS S3 and Snowflake; integrated vendor systems including Tatari, NetSuite ERP, Loop, Friendbuy and FormKeep. Set reusable pipeline patterns, containerized AWS deployments and CI/CD." },
-  { co: "N26", role: "Senior Data Engineer · New York / Berlin", mark: "N2", urls: ["https://n26.com"],
+  { co: "N26", role: "Senior Data Engineer · New York / Berlin · HQ Berlin", mark: "N2", urls: ["https://n26.com"],
     txt: "Architected, developed and administered the production U.S. data platform (PostgreSQL, custom data pipelines, Metabase) as part of the core Berlin-based global data team. Partnered with Compliance on fraud-risk audits, mitigation systems and regulatory workflows for the U.S. banking entity." },
   { co: "Cherre", role: "Senior Data Engineer · New York", mark: "CH", urls: ["https://www.cherre.com"],
     txt: "Core engineer on the award-winning Connected Data Platform; developed production pipelines ingesting NYC government records and third-party APIs on GCP (BigQuery, Airflow, GKE, Looker). Built entity resolution and a master metadata layer linking addresses, tax assessments and transactions into a real-estate knowledge graph." },
-  { co: "ABC Fitness Solutions", role: "Lead Data Architect · New York", mark: "AB", urls: ["https://www.abcfitness.com"],
+  { co: "ABC Fitness Solutions", role: "Lead Data Architect · New York", mark: "AB", urls: ["https://www.abcfitness.com"], interchange: "acquired by Thomas Bravo",
     txt: "Led an 8-person data team plus offshore contractors, reporting to the CTO, while hands-on in architecture and code. Drove the monolith-to-microservices migration; developed the cloud data warehouse and PCI-compliant data standards on Amazon RDS, Redshift and Domo." },
   { co: "Consulting", role: "United States / global", mark: "CO", urls: ["https://www.dell.com", "https://www.mckesson.com", "https://www.usbank.com"],
     txt: "Dell EMC (Senior Big Data Consultant): Greenplum MPP implementations for NYSE Euronext, Orbitz, Wellington Management, KNotice and INTTRA. McKesson / RelayHealth (Senior Research Software Engineer): HIPAA-compliant data systems. U.S. Bank / Elavon (Senior Software Engineer): bank-acquisition data migrations covering $2B+ revenue. Aloha Data (Principal Consultant): big data and analytics for PepsiCo, Federal Reserve Bank of Philadelphia, Australian Taxation Office, BC Hydro and the U.S. Department of Defense." },
@@ -43,8 +46,10 @@ const skills: [string, string[]][] = [
 ];
 ---
 <div class="space-y-8">
-  {([work, school] as Stop[][]).map((list) => (
-    <div class="relative">
+  {([["Work", work], ["Education", school]] as [string, Stop[]][]).map(([name, list]) => (
+    <div>
+      <h3 class="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500">{name}</h3>
+      <div class="relative">
         <div class="absolute left-[15px] top-3 bottom-3 w-0.5 rounded" aria-hidden="true"
           style={`background:${accent}` + "; opacity:.3"}></div>
         <ol class="space-y-4">
@@ -58,7 +63,7 @@ const skills: [string, string[]][] = [
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
                   {(st.urls ?? []).map((u) => (
                     <span class="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg border border-stone-200 bg-white font-mono text-[11px] font-bold text-stone-500 dark:border-stone-700 dark:bg-zinc-800 dark:text-stone-300">
-                      <img src={`https://www.google.com/s2/favicons?sz=${u.includes("cmu.edu") ? 128 : 64}&domain=${new URL(u).hostname}`} alt="" class="logo absolute inset-0 h-full w-full object-contain p-1" loading="lazy" width="36" height="36" />
+                      <img src={logoFor(new URL(u).hostname) ?? `https://www.google.com/s2/favicons?sz=64&domain=${new URL(u).hostname}`} alt="" class="logo absolute inset-0 h-full w-full object-contain p-1" loading="lazy" width="36" height="36" />
                       <span class="fallback">{st.mark}</span>
                     </span>
                   ))}
@@ -79,6 +84,7 @@ const skills: [string, string[]][] = [
             </li>
           ))}
         </ol>
+      </div>
     </div>
   ))}
   <div class="rounded-xl border border-[#eae2d0] bg-[#fffdf7] p-5 shadow-[0_1px_3px_rgba(120,100,60,0.06)] dark:border-stone-800 dark:bg-zinc-900 sm:p-7">

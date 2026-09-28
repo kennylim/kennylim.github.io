@@ -22,7 +22,10 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>▲</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@300;500;600;700&display=swap" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 4l8 16H4z' fill='%2393a883'/></svg>" />
     <script is:inline>
       try {
         const t = localStorage.getItem("theme");
@@ -36,7 +39,7 @@ const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWi
     <!-- the paper sheet -->
     <div class="sheet mx-auto max-w-[264mm] border-x border-stone-300/60 bg-[#fbf6ea] px-6 dark:border-stone-800 dark:bg-zinc-950 sm:px-12 lg:px-16">
       <header class="flex items-center justify-between gap-4 border-b border-stone-200 py-6 dark:border-stone-800">
-        <a href="/" class="font-mono text-[11px] uppercase tracking-[0.25em] text-stone-400 transition-colors hover:text-amber-700 dark:text-stone-500 dark:hover:text-amber-400">
+        <a href="/" class="font-logo text-4xl font-medium tracking-tight text-[#8ba37f] transition-opacity hover:opacity-70 dark:text-[#a8bd97]" aria-label="Ken Lim — home">
           Ken&nbsp;Lim
         </a>
         <nav class="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.12em] sm:gap-6">
