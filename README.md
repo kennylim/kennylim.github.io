@@ -28,14 +28,11 @@ git add -A && git commit -m "post: the title of my piece" && git push
 
 ## One-time deploy to GitHub Pages
 
-1. Set your URL in `astro.config.mjs` — replace `https://USERNAME.github.io` with e.g. `https://kenlim.github.io` (user site) or `https://kenlim.github.io/repo-name` (project site; also add `base: "/repo-name"`).
-2. Create the repo and push:
-   ```bash
-   cd ~/dev/kenlim-site
-   git init && git add -A && git commit -m "site"
-   gh repo create kenlim.github.io --public --source=. --push
-   ```
-3. Repo **Settings → Pages → Build and deployment → Source: GitHub Actions**. The workflow at `.github/workflows/deploy.yml` then builds and publishes on every push (~1 minute).
+Repo exists: **https://github.com/kennylim/kennylim-site** (private, branch `main`). When you're ready to deploy from this repo:
+
+1. In `astro.config.mjs` set `site: "https://kennylim.github.io"` and `base: "/kennylim-site"`.
+2. Make the repo public (private Pages needs a paid plan): `gh repo edit kennylim/kennylim-site --visibility public`
+3. **Settings → Pages → Source: GitHub Actions** — the existing workflow then builds and deploys on every push; live at `kennylim.github.io/kennylim-site`.
 
 Optional custom domain (`kennylim.com`): add a `CNAME` file with the domain and point DNS at GitHub ([docs](https://docs.github.com/pages/configuration/custom-domain-and-emails)).
 
