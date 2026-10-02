@@ -1,0 +1,110 @@
+---
+import Layout from "../layouts/Layout.astro";
+import ExperienceJourney from "../components/ExperienceJourney.astro";
+---
+<Layout title="Ken Lim â Experience" description="18+ years building production data and AI platforms â IAEA, Reach Financial, Kaia Health, Thinx, N26, Cherre, ABC Fitness Solutions, and a decade of consulting across finance, government, health, retail and utilities.">
+
+  <section class="pt-14 pb-8 sm:pt-20">
+    <p class="font-mono text-[11px] uppercase tracking-[0.35em] text-[#03aa5c] dark:text-[#3cc287]">Résumé / 03</p>
+    <h1 class="mt-4 text-4xl font-bold tracking-tight text-stone-900 dark:text-stone-100 sm:text-5xl">My experience</h1>
+    <p class="mt-5 font-mono text-[11px] uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500">18+ years Â· seven companies Â· two degrees Â· one stack</p>
+  </section>
+
+  <section id="experience" data-tabgroup class="border-t border-stone-200/80 py-10 dark:border-stone-800">
+    <div class="mb-8 flex justify-end gap-1 font-mono text-[10px] uppercase tracking-wider" role="tablist">
+      <button data-view="line" class="tab-btn rounded px-2.5 py-1 transition-colors">Timeline</button>
+      <button data-view="prose" class="tab-btn rounded px-2.5 py-1 transition-colors">Full text</button>
+    </div>
+<div data-view="line" class="tab-panel mt-6">
+      <ExperienceJourney />
+    </div>
+    <div data-view="prose" class="tab-panel hidden">
+    <p class="mt-5 max-w-2xl text-[16px] leading-relaxed text-stone-600 dark:text-stone-300">
+      Hands-on data engineering leader with 18+ years architecting, developing, scaling and
+      maintaining production data and AI platforms across fintech, healthtech, real estate and
+      the public sector â U.S. banking compliance systems, AI-driven therapy, and now nuclear
+      safeguards. The common thread: being accountable end to end, from the whiteboard to the
+      on-call rotation, and leaving teams and platforms stronger than the projects that needed them.
+    </p>
+    <div class="mt-8 space-y-8">
+      <div>
+        <h3 class="text-[17px] font-semibold text-stone-900 dark:text-stone-100">International Atomic Energy Agency <span class="font-normal text-stone-400 dark:text-stone-500">â Senior Data Engineer / Architect Â· 2024âpresent</span></h3>
+        <ul class="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-stone-600 dark:text-stone-300">
+          <li>Architect and hands-on engineer of SG Lake â a greenfield, open-source, air-gapped lakehouse on Kubernetes consolidating Safeguards data for analytics and AI.</li>
+          <li>Authored the platform architecture and white paper, audited by PwC against all five Well-Architected pillars.</li>
+          <li>Production ingestion services, Airflow pipelines and dbt models on Apache Iceberg; Trino for federated query, Spark for transformation; deploying, scaling and maintaining it as multiple project teams onboard.</li>
+          <li>Built the observability and quality stack â Prometheus/Grafana SLOs, data contracts, dbt tests, Great Expectations, OpenMetadata lineage. The gold layer is the single source of truth for the agency's data science and AI teams.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-[17px] font-semibold text-stone-900 dark:text-stone-100">Reach Financial <span class="font-normal text-stone-400 dark:text-stone-500">â Lead Data Engineer Â· NYC Â· 2023â2024</span></h3>
+        <ul class="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-stone-600 dark:text-stone-300">
+          <li>Technical lead owning data strategy and roadmap while writing production code.</li>
+          <li>Delivered AI products for credit scoring, loan origination and risk â contract-tested feature tables for the ML team on Snowflake, dbt and Dagster, with a domain-driven Data Mesh.</li>
+          <li>Resolved a persistent SalesforceâSnowflake dynamic-pricing sync failure that had outlived multiple attempts.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-[17px] font-semibold text-stone-900 dark:text-stone-100">Kaia Health <span class="font-normal text-stone-400 dark:text-stone-500">â Lead Data Engineer Â· NYC Â· HQ Munich Â· 2021â2023 Â· acquired by Sword Health</span></h3>
+        <ul class="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-stone-600 dark:text-stone-300">
+          <li>Architected, developed and operated the production Snowflake platform behind AI-driven musculoskeletal therapy.</li>
+          <li>Led the RedshiftâSnowflake migration end to end, designing Medallion and Lambda architectures for AI model training; Airflow and dbt pipelines feeding proprietary algorithms, with Great Expectations checks guarding production ML models.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-[17px] font-semibold text-stone-900 dark:text-stone-100">Thinx <span class="font-normal text-stone-400 dark:text-stone-500">â Lead Data Engineer Â· NYC Â· 2021 Â· acquired by Kimberly-Clark</span></h3>
+        <ul class="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-stone-600 dark:text-stone-300">
+          <li>Architected and developed the data platform from scratch â Airflow, AWS S3, Snowflake â integrating vendor systems (NetSuite, Tatari, Loop, Friendbuy, FormKeep), with reusable pipeline patterns, containerized deployments and CI/CD.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-[17px] font-semibold text-stone-900 dark:text-stone-100">N26 <span class="font-normal text-stone-400 dark:text-stone-500">â Senior Data Engineer Â· NYC/Berlin Â· HQ Berlin Â· 2019â2021</span></h3>
+        <ul class="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-stone-600 dark:text-stone-300">
+          <li>Architected, developed and administered the production U.S. data platform (PostgreSQL, custom pipelines, Metabase) as part of the core global data team.</li>
+          <li>Partnered with Compliance on fraud-risk audits, mitigation systems and regulatory workflows for the U.S. banking entity.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-[17px] font-semibold text-stone-900 dark:text-stone-100">Cherre <span class="font-normal text-stone-400 dark:text-stone-500">â Senior Data Engineer Â· NYC Â· 2018â2019</span></h3>
+        <ul class="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-stone-600 dark:text-stone-300">
+          <li>Core engineer on the award-winning Connected Data Platform â production pipelines over NYC government records and third-party APIs on GCP (BigQuery, Airflow, GKE, Looker); entity resolution and a master metadata layer turning addresses, assessments and transactions into a real-estate knowledge graph.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-[17px] font-semibold text-stone-900 dark:text-stone-100">ABC Fitness Solutions <span class="font-normal text-stone-400 dark:text-stone-500">â Lead Data Architect Â· NYC Â· 2017â2018 Â· acquired by Thomas Bravo</span></h3>
+        <ul class="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-stone-600 dark:text-stone-300">
+          <li>Led an 8-person data team plus offshore contractors, reporting to the CTO, while hands-on in architecture and code; drove the monolithâmicroservices migration and built the cloud warehouse with PCI-compliant data standards (RDS, Redshift, Domo).</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="text-[17px] font-semibold text-stone-900 dark:text-stone-100">Consulting years <span class="font-normal text-stone-400 dark:text-stone-500">â Dell EMC, McKesson/RelayHealth, U.S. Bank/Elavon, Aloha Data Â· 2009â2017</span></h3>
+        <ul class="mt-2 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-stone-600 dark:text-stone-300">
+          <li>Principal/Senior consultant delivering big-data and analytics platforms for PepsiCo, the Federal Reserve Bank of Philadelphia, the Australian Taxation Office, BC Hydro, the U.S. DoD, NYSE Euronext, Orbitz and Wellington Management; Greenplum/MPP implementations; HIPAA-compliant health data systems; $2B+ bank-acquisition migrations.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-10 grid gap-6 sm:grid-cols-2">
+      <div>
+        <h3 class="font-mono text-[11px] uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500">Education</h3>
+        <ul class="mt-3 space-y-1.5 text-[14.5px] leading-relaxed text-stone-600 dark:text-stone-300">
+          <li><strong class="text-stone-900 dark:text-stone-100">M.S. Artificial Intelligence</strong> â University of Texas at Austin (2027)</li>
+          <li><strong class="text-stone-900 dark:text-stone-100">Post-graduate, AI &amp; ML</strong> â University of Texas at Austin (2023)</li>
+          <li><strong class="text-stone-900 dark:text-stone-100">M.S. Software Engineering</strong> â Carnegie Mellon University (2008)</li>
+          <li><strong class="text-stone-900 dark:text-stone-100">B.S. Computer Science</strong> â Franklin University (2006)</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-mono text-[11px] uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500">Toolkit</h3>
+        <p class="mt-3 font-mono text-[12.5px] leading-relaxed text-stone-500 dark:text-stone-400">
+          Python Â· SQL Â· dbt Â· Airflow Â· Dagster Â· Spark Â· Kafka Â· Flink Â· Iceberg Â· Trino Â· DuckDB
+          Â· Snowflake Â· Databricks Â· BigQuery Â· PostgreSQL Â· Neo4j Â· PyTorch Â· MLflow Â· LangGraph
+          Â· RAG Â· MCP Â· vLLM Â· pgvector Â· Great Expectations Â· OpenMetadata Â· Kubernetes Â· Terraform
+          Â· Argo CD Â· AWS Â· GCP Â· Azure
+        </p>
+      </div>
+    </div>
+    </div>
+  </section>
+
+</Layout>
