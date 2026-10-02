@@ -6,16 +6,17 @@ import ExperienceJourney from "../components/ExperienceJourney.astro";
 <Layout title="Ken Lim — Data & AI, end to end" description="Ken Lim builds the end-to-end data-to-AI stack — ingestion pipelines, governed data platforms, trained and tuned models, to shipped data and AI products. 18+ years across fintech, healthtech, proptech and the public sector.">
 
   <!-- letterhead / hero -->
-  <section class="pt-14 pb-12 text-center sm:pt-20">
-    <p class="font-mono text-[11px] uppercase tracking-[0.35em] text-[#03aa5c] dark:text-[#3cc287]">Data &amp; AI · End to End</p>
-    <p class="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-stone-600 dark:text-stone-300">
-      I build the <span class="text-stone-900 dark:text-stone-100">end-to-end data-to-AI stack</span> — ingestion
-      pipelines, governed data platforms, trained and tuned models, and AI services — from raw data to shipped product.
+  <section class="relative pt-16 pb-12 sm:pt-24">
+    <p class="font-mono text-[11px] uppercase tracking-[0.3em] text-stone-400">Ken Lim — Vienna · New York</p>
+    <h1 class="mt-5 font-display text-4xl font-semibold leading-[1.1] tracking-tight text-stone-900 dark:text-stone-100 sm:text-5xl">
+      Data &amp; AI,<br />end to end<span class="text-stone-300">.</span>
+    </h1>
+    <p class="mt-7 max-w-xl text-lg leading-relaxed text-stone-600 dark:text-stone-300">
+      I build the entire path from raw data to shipped AI and data products — pipelines,
+      governed platforms, trained and tuned models, and services running in production.
     </p>
-    <p class="mt-4 font-mono text-[11px] uppercase tracking-[0.2em] text-stone-400 dark:text-stone-500">
-      18+ years · fintech · healthtech · proptech · public sector · U.S. citizen
-    </p>
-    <div class="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 font-mono text-[12px]">
+    <p class="mt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-stone-400">18+ years · 7 companies · 3 acquisitions · U.S. citizen</p>
+    <div class="mt-6 flex flex-wrap justify-start gap-x-6 gap-y-2 font-mono text-[12px]">
       <a class="text-[#03aa5c] hover:underline dark:text-[#3cc287]" href="mailto:mail@kennylim.com">mail@kennylim.com</a>
       <a class="text-stone-500 hover:text-[#03aa5c] dark:text-stone-400 dark:hover:text-stone-100" href="tel:+19298889061">+1 (929) 888-9061</a>
       <a class="text-stone-500 hover:text-[#03aa5c] dark:text-stone-400 dark:hover:text-stone-100" href="https://linkedin.com/in/kenny-lim" rel="noopener" target="_blank">LinkedIn ↗</a>
@@ -23,43 +24,44 @@ import ExperienceJourney from "../components/ExperienceJourney.astro";
   </section>
 
   <!-- 1. about me -->
-  <section class="border-t border-stone-200/80 py-12 dark:border-stone-800">
-    <h2 class="font-display text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100">About me</h2>
+  <section data-reveal class="border-t border-stone-200/80 py-12 dark:border-stone-800">
+    <p class="font-displaymono text-[10px] uppercase tracking-[0.35em] text-stone-400">01 — who I am</p>
+    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">About me</h2>
     <div class="mt-5 space-y-4 text-[16px] leading-relaxed text-stone-600 dark:text-stone-300">
       <p>
         Most AI initiatives don't fail at the model — they fail at the data. The trouble hides
-        between the layers. I work the full stack: ingesting raw data, pipelines and
-        transformation, governed platforms, the ML layer, and the AI services on top — agents,
-        RAG, MCP. Being hands-on in every layer is what lets me catch the gaps between them.
+        in the seams between layers, so I work the full stack myself: ingesting raw data,
+        pipelines and transformation, governed platforms, the ML layer, and the AI services on
+        top — agents, RAG, MCP. Being hands-on in every layer is how I find the seams before
+        they split.
       </p>
       <p>
-        I'm a hands-on data tech lead, which keeps me on the front line and in touch with
-        reality: I set strategy, design the architecture, write
-        production code, and grow the people around me — coaching in-house teams and leading
-        onshore and offshore contractors.         I do the elbow-greasing work too: complex, messy data
-        doesn't become clean, governed tables without tenacity and grit.         And I run what I build day to day — monitoring, scaling, tuning — so I see firsthand
-        how it behaves in production.
+        I'm a hands-on data tech lead, and that keeps me on the front line, close to reality.
+        I set strategy, design the architecture, write production code, and grow the people
+        around me — coaching in-house teams, leading onshore and offshore contractors. The
+        elbow grease still goes in: complex, messy data doesn't become clean, governed tables
+        without tenacity and grit. And I run what I build — monitoring, scaling, tuning — so I
+        know exactly how it behaves in production.
       </p>
       <p>
-        It's been an 18+ year run — fintech, healthtech, consumer and enterprise SaaS, proptech
-        and the public sector, with three companies acquired along the way. It started with a
-        decade of consulting, delivering big-data builds on modern stacks for clients in
-        finance, government, health, retail and utilities around the world. That work made me
-        pragmatic, results-driven, cost-conscious and transparent — and taught me that success
-        is the client running the platform, using it every day, and
-        achieving the objective it was built for — long after the consultant leaves.
+        It's been an 18+ year run — fintech, healthtech, consumer and enterprise SaaS, proptech,
+        the public sector, three acquisitions along the way. It began with a decade of
+        consulting: big-data builds on modern stacks for clients in finance, government,
+        health, retail and utilities around the world. That work made me pragmatic,
+        results-driven, cost-conscious and transparent — and taught me what success actually
+        looks like: the client still running the platform years later, using it every day,
+        getting what it was built for — long after the consultant leaves.
       </p>
     </div>
   </section>
 
   <!-- 2. what I do -->
-  <section id="do" class="scroll-mt-6 border-t border-stone-200/80 py-12 dark:border-stone-800">
-    <h2 class="font-display text-xl font-bold tracking-tight text-stone-900 dark:text-stone-100">What I do</h2>
-    <div class="mt-5 space-y-4 text-[16px] leading-relaxed text-stone-600 dark:text-stone-300">
-      <p>
-        The five stages below — what each one produces.
-      </p>
-    </div>
+  <section id="do" data-reveal class="scroll-mt-6 border-t border-stone-200/80 py-12 dark:border-stone-800">
+    <p class="font-displaymono text-[10px] uppercase tracking-[0.35em] text-stone-400">02 — the work</p>
+    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">What I do</h2>
+    <p class="mt-5 text-[16px] leading-relaxed text-stone-600 dark:text-stone-300">
+      The five stages below — what each one produces.
+    </p>
     <div class="mt-9">
       <FlowDiagram />
     </div>
