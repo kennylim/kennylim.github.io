@@ -68,7 +68,6 @@ const stages = [
   <div class="relative">
     <!-- the flow spine -->
     <div class="absolute left-[27px] top-4 bottom-4 w-px bg-gradient-to-b from-stone-300 via-stone-300 to-[#03aa5c]/60 dark:from-stone-700" aria-hidden="true">
-      <span class="flow-dot absolute left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-[#03aa5c]"></span>
     </div>
 
     <!-- start -->
@@ -124,16 +123,4 @@ const stages = [
   </div>
 </figure>
 
-<style>
-  .flow-dot { top: 0; animation: flow-y 9s linear infinite; opacity: 0.55; }
-  .flow-dot-2 { animation-delay: 2.75s; }
-  @keyframes flow-y {
-    0% { top: -2%; opacity: 0; }
-    5% { opacity: 0.85; }
-    95% { opacity: 0.85; }
-    100% { top: 102%; opacity: 0; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .flow-dot { display: none; }
-  }
-</style>
+
