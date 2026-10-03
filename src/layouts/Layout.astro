@@ -1,0 +1,126 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+import "../styles/global.css";
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+}
+const {
+  title = "Ken Lim — Data & AI",
+  noindex = false,
+  description = "Ken Lim builds end-to-end data-to-AI solutions — platforms, pipelines and the ML layer on top, from raw data to shipped AI.",
+} = Astro.props;
+const nav = [
+  { href: "/", label: "About" },
+  { href: "/what-i-do", label: "What I do" },
+  { href: "/experience", label: "Experience" },
+  // { href: "/writing", label: "Writing" }, // hidden until the essays are ready to publish
+];
+const path = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const isCurrent = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Fragment+Mono:wght@400&display=swap" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 4l8 16H4z' fill='%2393a883'/></svg>" />
+    <script is:inline>
+      try {
+        const t = localStorage.getItem("theme");
+        if (t === "dark" || (!t && matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch {}
+    </script>
+  </head>
+  <body class="min-h-screen bg-[#eeebe1] py-0 text-stone-900 antialiased selection:bg-[#b8ecd0] selection:text-stone-900 dark:bg-black dark:text-stone-100 sm:py-10">
+    <!-- the paper sheet -->
+    <div class="sheet mx-auto max-w-[264mm] border-x border-stone-200/70 bg-[#f8f5ee] px-6 dark:border-stone-800 dark:bg-[#0a0a0a] sm:px-12 lg:px-16">
+      <header class="flex items-center justify-between gap-4 border-b border-stone-200 py-6 dark:border-stone-800">
+        <a href={base + "/"} class="font-logo text-5xl font-bold tracking-tight text-[#1e1e1e] transition-opacity hover:opacity-70 dark:text-[#f2f2f2]" aria-label="Ken Lim — home">
+          Ken&nbsp;Lim
+        </a>
+        <nav class="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.12em] sm:gap-6">
+          {nav.map((item) => (
+            <a
+              href={base + item.href}
+              aria-current={isCurrent(item.href) ? "page" : undefined}
+              class:list={[
+                "transition-colors pb-0.5",
+                isCurrent(item.href)
+                  ? "border-b border-[#03aa5c] text-stone-900  dark:text-stone-100"
+                  : "text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100",
+              ]}
+            >
+              {item.label}
+            </a>
+          ))}
+          <button id="theme-toggle" class="text-stone-400 transition-colors hover:text-[#03aa5c] dark:text-stone-500 dark:hover:text-[#3cc287]" aria-label="Toggle theme">
+            <svg class="hidden dark:block" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+            <svg class="block dark:hidden" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+          </button>
+        </nav>
+      </header>
+      <main class="relative">
+        <slot />
+      </main>
+      <footer class="border-t border-stone-200 py-6 text-center dark:border-stone-800">
+        <div class="flex justify-center gap-6 font-mono text-[11px] uppercase tracking-[0.15em]">
+          {nav.map((item) => (
+            <a
+              href={base + item.href}
+              class:list={[
+                "transition-colors",
+                isCurrent(item.href)
+                  ? "text-[#03aa5c] dark:text-[#3cc287]"
+                  : "text-stone-400 hover:text-stone-700 dark:text-stone-600 dark:hover:text-stone-400",
+              ]}
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+        <p class="mt-3 font-mono text-[10px] uppercase tracking-[0.2em] text-stone-400 dark:text-stone-600">© {new Date().getFullYear()} Ken Lim</p>
+      </footer>
+    </div>
+    <script>
+      const btn = document.getElementById("theme-toggle");
+      btn?.addEventListener("click", () => {
+        const dark = document.documentElement.classList.toggle("dark");
+        try { localStorage.setItem("theme", dark ? "dark" : "light"); } catch {}
+      });
+
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) if (e.isIntersecting) { e.target.classList.add("revealed"); io.unobserve(e.target); }
+      }, { threshold: 0.12 });
+      document.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
+
+      document.querySelectorAll<HTMLElement>("[data-tabgroup]").forEach((group) => {
+        const buttons = Array.from(group.querySelectorAll<HTMLButtonElement>(".tab-btn"));
+        const panels = Array.from(group.querySelectorAll<HTMLElement>(".tab-panel"));
+        const setActive = (name: string) => {
+          panels.forEach((p) => p.classList.toggle("hidden", p.dataset.view !== name));
+          buttons.forEach((b) => {
+            const on = b.dataset.view === name;
+            b.classList.toggle("bg-stone-900", on);
+            b.classList.toggle("text-stone-50", on);
+            b.classList.toggle("dark:bg-stone-100", on);
+            b.classList.toggle("dark:text-stone-900", on);
+            b.classList.toggle("text-stone-400", !on);
+            b.classList.toggle("dark:text-stone-500", !on);
+          });
+        };
+        buttons.forEach((b) => b.addEventListener("click", () => setActive(b.dataset.view!)));
+        setActive(buttons[0]?.dataset.view ?? "short");
+      });
+    </script>
+  </body>
+</html>

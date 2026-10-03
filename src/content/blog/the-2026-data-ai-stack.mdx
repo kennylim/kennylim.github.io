@@ -1,0 +1,213 @@
+---
+title: "The 2026 data-and-AI stack — final recommendations"
+description: "The definitive version: what I'd run if building a data+AI company today with a small team — table formats, ETL, streaming, OLTP, ML lifecycle, RAG, agents, BI — decided, validated against primary sources, and defended against the strongest counterarguments."
+date: 2026-09-28
+tags: ["data-to-ai", "architecture", "startups"]
+---
+import StartupStackDiagram from "../../components/StartupStackDiagram.astro";
+import TwoPlaneDiagram from "../../components/TwoPlaneDiagram.astro";
+import StreamingPipelineDiagram from "../../components/StreamingPipelineDiagram.astro";
+
+*One essay, consolidated from my earlier stack proposal and its reader-audit, merged into final recommendations. The history behind it — and the frontier evidence — lives in the consolidated survey [Sixty years of data architecture](/writing/evolution-of-data-architectures/). Every claim below carries a bracketed reference, verified against primary sources this month.*
+
+## The position in one paragraph
+
+Build a company around **context and the closed loop**; rent the substrate, which in 2026 finally consolidated into interoperable parts. Own the governed knowledge your agents consume and the workflow your agents complete — the two things no vendor roadmap contains. Everything else is integration. The YC 2026 signal is blunt: AI is the default substrate, and what wins is *owning full workflow loops*, mostly in infrastructure and regulated, real-world domains [1][2].
+
+## Reference architecture: one stack, two planes
+
+<StartupStackDiagram caption="Figure 1 — the reference stack, tinted by what a small team should build (left rail) versus rent." />
+
+The stack answers two clocks at once. **The log serves *now*** — agents, features, and context that must be fresh within milliseconds. **The table serves *always*** — truth, metrics, models, evals, and the audit trail. Reprocessing lives at both: replay the log for the hot path, recompute the table for the archive. The Kappa architecture (Kreps, 2014: one stream, reprocess by replay [3][4]) is finally practical at the hot path because Rust streaming databases disaggregated their state onto S3 — but replay is still physics, so a batch-reconcilable lake remains the source of truth [5][6][7].
+
+<TwoPlaneDiagram caption="Figure 2 — the two planes. Fresh by the log, checked by the table, one schema contract between them." />
+
+**Rule of thumb:** anything an agent reads or writes in its loop lives on the log plane *and* lands in the table plane within contract SLA. One schema, two velocities.
+
+## Deciding the storage layer
+
+The format wars are over; the niches remain. **Apache Iceberg (v3) is the default** table plane: engine-neutral, REST-catalog governed, v3 adding deletion vectors, row lineage (cheap CDC out of the lake itself), VARIANT for semistructured, and native implementations like iceberg-rust feeding the streaming plane [8][9][10]. Delta is the polished answer *inside* Databricks; Paimon the streaming-first (Flink/LSM) lake format; Hudi the upsert specialist [11][12]. For AI payloads, **Lance** (Rust, columnar-random, vector-native) and emerging formats like Vortex are a different class — file formats with their own dataset versioning, stored beside Iceberg-managed tables, not instead of them [13][14].
+
+**The honest exception — DuckLake.** Introduced May 2025 by the DuckDB team, it keeps Parquet files and moves *all* metadata into a plain SQL database (Postgres/SQLite/DuckDB), yielding ACID, MVCC and time travel with no metastore, no compaction service, no catalog operation [15][16][17]. With **Quack** (May 2026, DuckDB 1.5) — an HTTP client-server protocol with concurrent writers, already reimplemented in pure Rust with federated Iceberg joins — a five-person company can run *the whole table plane on one binary* [18][19][20][21]. Recommendation: **start DuckLake if you have one engine and fewer than ten humans; adopt Iceberg the day a second engine or a regulator shows up.** DuckDB's support matrix (Iceberg, Delta, Lance, DuckLake first-class) makes that migration a query, not a project [22].
+
+**Catalog:** run an open REST catalog — Lakekeeper or Polaris for neutrality; Unity Catalog if Databricks-centric (its 2026 interoperability expansion made managed tables readable externally) [23][24][25]. The catalog is where governance, sharing and (increasingly) agent permissions will concentrate — plan for it to be your center of gravity [26].
+
+## Deciding ETL — from streaming ingestion to contract-enforced transformation
+
+Four moves, and the interesting one is in the middle: how transformations *learn* that new data has arrived.
+
+1. **Zero-ETL first.** Operational Postgres on the lake substrate (Lakebase-style) means app data needs no pipeline [27][28]; SaaS/databases stream in via Fivetran, now merged with dbt Labs (~$600M combined, positioned explicitly as "data infrastructure for trusted AI agents") [29][30]; event streams land natively as Iceberg (Kafka ecosystem, Confluent's BYOC WarpStream, now part of IBM's $11B platform) [31][32].
+2. **Land raw, append-only, at the schema you agreed on.** The raw/bronze layer is Iceberg appends of what the source *is* — no casts, no opinions, replayable forever (v3 row lineage makes even this layer auditable [8][9][10]). The contract is enforced at the bus before anything touches storage [86][87].
+3. **Trigger on arrival, not on cron.** The proven patterns, in order of how little you should have to build:
+
+| Trigger pattern | How it works | Reach for it when |
+|---|---|---|
+| Native sync→transform | Fivetran "integrated scheduling" fires the dbt Cloud job at the end of every sync — the connector itself decides when dbt runs [73][74] | dbt Cloud + Fivetran; the zero-plumbing default |
+| Webhook → event → run | Source posts "sync complete"/commit events to an event bus; a listener executes the right dbt selection — Prefect webhooks, Airflow 3.0 event-triggered DAGs [75][76] | Mixed sources, self-hosted dbt, sub-minute latency |
+| Asset/data-dependency scheduling | Airflow 3 *assets* and Dagster *assets* treat each dbt model as a versioned thing; upstream materialization auto-fans-out to downstream runs — or Cosmos compiles the dbt DAG straight into Airflow [77][78][79][80] | Multi-team DAGs where lineage should be the schedule |
+| Freshness as a first-class signal | dbt `source-freshness` gates and Dagster's update-checking assets ensure you never spend compute on an empty interval [79][80] | Volatile sources; avoid firing at empty intervals |
+| SQLMesh signals | The scheduler advances an interval only when a user-defined signal says that interval's data is ready — file exists, row count stable, commit visible [81] | Near-real-time microbatch without inventing your own sensors |
+| Streaming microbatch | Databricks-style `AVAILABLE_NOW` micro-triggers turn bronze→silver merges into a standing stream job — SQLMesh/dbt models run on the same cadence [83] | The Kappa plane; minutes-to-seconds freshness |
+
+Mechanically: **dbt microbatch/incremental models with MERGE over the CDC envelope** (op, ts, before/after) — the pattern dbt's own near-real-time guidance documents [84] — or **SQLMesh `INCREMENTAL_BY_UNIQUE_KEY`/`SCD_TYPE_2` kinds** applied to the same envelopes, whose virtual-data-environment plans make the change-apply loop CI-gated rather than hope-based [82]. The raw-to-target write is the same either way: an idempotent merge keyed on (PK, commit-LSN), so replays converge instead of double-count.
+
+<StreamingPipelineDiagram caption="Figure 3 — streaming ingestion to serving: two planes meet here; the numbered gates are where data contracts bind." />
+
+4. **Stream the hot path** through the Kappa plane — RisingWave-style Rust streaming databases now pitch themselves as replacing Debezium+Kafka+Flink+a serving DB with one system, incremental materialized views with state on S3; Apache Fluss extends the log-native option into incubating reality [5][6][35][36].
+
+**How contracts are enforced — three gates, one file.** The literature has converged on defense in depth [87][88][89]: **① at the bus** — Confluent-style schema registry rejects incompatible producers at write time (compatibility modes + JSONata/CEL quality rules + PII tags) [86]; **② at the model** — dbt model contracts fail the build when a SELECT drifts from the declared schema (typed columns + constraints, hardened for Iceberg/Delta); SQLMesh audits run in the plan diff [85][82]; **③ at the product edge** — the same contract rendered as docs + SLAs + freshness monitors (DAG-style DUAs), consumed by agents as well as humans. Keep the **ODCS YAML in git as the single source**, generate registry subjects, dbt contracts and catalog policies from it in CI (`datacontract-cli`, buf) — enforcement stops being a meeting [88][89][33][34]. Breaking changes travel as versioned proposals with migration windows, never as surprises at 3 a.m. [90][91]
+
+## Deciding state, memory, and the OLTP question
+
+Every agent needs a database it can trust, branch, and forget. The validated pattern is **Neon/Lakebase-style Postgres**: ephemeral stateless computes, quorum-replicated WAL safekeepers, pageservers reconstructing LSN-indexed history on object storage — Git-like copy-on-write branching and scale-to-zero as consequences, not features [37][38][39][40]. Aurora proved the split; Neon finished it; DSQL generalizes it to distributed [41][42].
+
+**Guardrails, from the audit:** WAL-before-ack adds tail latency; autosuspend cold-starts sting chatty agent loops; **branches nobody prunes are the new table sprawl**; and Postgres-as-working-memory must not become the archive — logs compact, branches expire, only the lake remembers. Beside it, a funded **agent memory layer** — Mem0 ($24M Oct 2025), Letta (MemGPT), Zep/Graphiti temporal graphs — for durable, forgetting-aware state between the context window and the row [43][44].
+
+## Deciding the ML lifecycle: retrieval-first, fine-tune second, train almost never
+
+- **Retrieval before weights.** Production RAG in 2026 is retrieval *engineering*: hybrid BM25+dense with RRF fusion, cross-encoder or listwise rerankers (Cohere Rerank, bge, Jina), late-interaction (ColBERT/ColPali) for documents and screenshots, contextual retrieval at index time, GraphRAG where answers are joins [45][46][47][48][49]. Long context didn't kill RAG — it repriced being wrong.
+- **The model layer is settled enough to shop.** For agentic/tool work, evaluate on the **Berkeley Function-Calling Leaderboard v4** plus your own trace evals: the open-weight field (Qwen3.8, DeepSeek V4 under MIT, GLM-5.x, gpt-oss-120b) matches proprietary on standard tool tasks, so pick by license, cost and serving fit [50][51][52][53].
+- **Fine-tuning is the training.** LoRA-style jobs on Modal/RunPod or hosted at Together/Fireworks; the inference layer repriced to reported $15–26B valuations this September because *running* models became the business — treat that as a cost warning, not a tailwind [54][55][56].
+- **Serving**: vLLM/SGLang with tool-call parsing and guided structured output — agents eat schemas [57]. **Features**: Feast if self-hosted, Tecton-in-Databricks if you bought the platform (its acquisition was explicitly about agent-latency context) [58]. **The loop**: MLflow/W&B registries, **evals in CI** (RAGAS goldensets + Langfuse/Braintrust traces) as release gates — the unit tests of this era [49][59].
+
+## Deciding agents, interfaces, BI and data products
+
+Protocols are neutral now; act accordingly. **MCP** — governed by the Linux Foundation's Agentic AI Foundation (Dec 2025) with A2A (Google; IBM's ACP merged in) alongside it since Aug 2026 — is the tool plane; adopt it as your product's API surface for agents, and use A2A only for cross-org delegation [60][61][62][63]. **Agent Skills (SKILL.md)**, open since Dec 2025 and implemented across 40+ platforms, is where your runbooks, review checklists and dbt style guides become executable knowledge — write them in version control like code [64][65][66].
+
+BI is conversational/agentic — Databricks Genie ("Genie One" + ontology at DAIS 2026), Snowflake Cortex Analyst/Intelligence, ThoughtSpot Spotter, Tableau — and all of it succeeds or fails on the **semantic layer**, which is standardizing as Apache Ossie/OSI (Snowflake, Databricks, dbt and 50+ orgs) [67][68][69][70]. Ship governed metrics there; the dashboards, the text-to-SQL and your own agent products then read the same definitions. One context, many consumers.
+
+## The shopping list
+
+| Concern | Default decision (2026) | Escalate to | Evidence |
+|---|---|---|---|
+| Table format | Iceberg v3 (multi-engine, governed) | DuckLake while small; Delta if all-in Databricks; Paimon/Hudi for streaming-upsert niches | [8][11][12][15] |
+| Catalog | Lakekeeper / Polaris (OSS REST) | Unity Catalog (hosted or open) | [23][24][25] |
+| OLTP / agent state | Postgres (Neon/Lakebase-style, branching) | Aurora DSQL for global scale | [27][37][42] |
+| ETL | Zero-ETL + Fivetran; dbt/SQLMesh | Debezium/Flink self-managed at volume | [29][31] |
+| Streaming / freshness | Kappa plane: RisingWave-class Rust DB | Fluss/Flink on Iceberg when logs need their own retention | [5][35][36] |
+| AI-native payloads | Parquet + Iceberg for tables; **Lance** for multimodal | Vortex as it matures | [13][14] |
+| Inference | vLLM/SGLang self-hosted *or* Together/Fireworks | Modal/Baseten-class GPU serverless as volume demands | [54][55][56][57] |
+| Models | Open weights (Qwen/DeepSeek/gpt-oss) for loops; frontier API for hard reasoning | LoRA fine-tunes on your captured traces | [50][51][52] |
+| RAG | Hybrid + rerank + contextual retrieval; GraphRAG where joins matter | Agentic RAG via MCP tool loops | [45][46][47] |
+| Memory | Mem0 / Zep / Letta (OSS) | Own store on Lakebase Postgres + graph | [43][44] |
+| Agent tooling | MCP servers for your product; SKILL.md library in git | A2A for org-to-org agent delegation | [60][64][62] |
+| BI / semantics | dbt/Cube metrics; Ossie-format definitions | Genie/Cortex/Spotter for human self-service | [67][69][70] |
+| Orchestration | Temporal for agent durability; Dagster/Airflow for batch | managed Temporal Cloud | [71] |
+| Trust | contracts (ODCS), lineage, evals in CI, OTel traces | guardrails (Llama Guard-class) + pin/sandbox every MCP server | [33][49][72] |
+
+## The operating plan — 30 / 90 / 365 days
+
+**Day 30.** One vertical workflow, one model behind one interface. Postgres with branching, pgvector, one DuckLake (or Iceberg) table, Temporal for the loop, MCP server exposing your product's verbs, Langfuse traces on every call. Demo = the loop closes, not a chatbot.
+
+**Day 90.** Hybrid+rerank retrieval over the domain corpus; the SKILL.md library encoding your operators' procedures; contracts in CI; Kappa plane feeding agent context sub-second; eval gates blocking deploys; semantic metrics published in Ossie-compatible form.
+
+**Day 365.** Fine-tune *only* where traces prove retrieval+prompt plateau; migrate ingest to zero-ETL as volume justifies; publish governed context so third-party agents can consume you through MCP/A2A — the network-effect position. Re-audit the stack each quarter: this field moves on acquisition quarters, not conference years.
+
+## What would change my mind
+
+Honest failure modes, carried from the audit: an Iceberg-v3 + DuckLake convergence that ends the "when to adopt" argument early; a security incident class in MCP supply chains that forces closed tool planes (2026 already logged server CVEs — assume data is hostile until proven otherwise) [72]; agent-identity/quota/blast-radius governance maturing at the catalog layer and commoditizing the tool plane; or long-context + caching economics inverting the retrieval-first rule. None are visible enough today to build against — but any one flips a row of the table above, which is why the table cites sources instead of vibes.
+
+## Final recommendation
+
+If you asked me on Monday, with five engineers and a vertical to conquer: **Iceberg v3 on a REST catalog, DuckLake while small; Postgres-with-branches as the agent's working memory; the lake as the archive; a Rust streaming DB on the hot path; zero-ETL and contracts instead of pipelines-and-hopes; retrieval before fine-tunes before training; vLLM or one inference platform, never both until forced; MCP as your API surface, SKILL.md as your institutional memory, Ossie-format metrics as your semantics; evals in CI as your release process.** Own the context. Close the loop. Keep one copy of the truth on two clocks.
+
+That is the stack. The rest is execution.
+
+---
+
+## References (verified 2026-09-28)
+
+1. agentiwise — *373 YC AI startups analyzed* — [substack](https://agentiwise.substack.com/p/i-analyzed-373-ai-startups-selected)
+2. Y Combinator — *Requests for Startups (Fall 2026)* — [ycombinator.com/rfs](https://www.ycombinator.com/rfs)
+3. Data Vidhya — *Kappa Architecture (Kreps 2014)* — [guide](https://datavidhya.com/learn/de-system-design/architecture-patterns/kappa-architecture/)
+4. Algobase — *Kappa, log compaction & replay* — [notes](https://algobase.dev/learn/system-design/kappa-architecture)
+5. RisingWave — project & agentic positioning — [github](https://github.com/risingwavelabs/risingwave) · [product](https://risingwave.com/database/)
+6. piStack — *RisingWave vs Materialize vs ksqlDB (2026)* — [guide](https://www.pistack.xyz/posts/2026-04-23-risingwave-vs-materialize-vs-ksqldb-self-hosted-streaming-databases-guide-2026/)
+7. LabHub — *Stream processing 2026: state models* — [deep dive](https://labhub.hopto.org/blog/culture/2026-05-16-stream-processing-2026-kafka-streams-flink-sql-risingwave-materialize-arroyo-ksqldb-bytewax-decodable-deep-dive)
+8. Apache Iceberg (spec, REST catalog, Rust impl) — [iceberg.apache.org](https://iceberg.apache.org/)
+9. Databricks — *Iceberg v3 explained* (June 2025) — [blog](https://www.databricks.com/blog/apache-icebergtm-v3-moving-the-ecosystem-towards-unification)
+10. AWS — *Iceberg v3 deletion vectors & row lineage* (Nov 2025) — [blog](https://aws.amazon.com/blogs/big-data/accelerate-data-lake-operations-with-apache-iceberg-v3-deletion-vectors-and-row-lineage/)
+11. jamesm — *The format wars are over (2026)* — [essay](https://jamesm.blog/data-engineering/iceberg-vs-delta-vs-hudi-2026/)
+12. BladePipe — *Paimon vs Iceberg vs Delta* — [comparison](https://www.bladepipe.com/blog/data_insights/iceberg_vs_deltalake_vs_paimon/) · iceberglakehouse — [formats 2026](https://iceberglakehouse.com/posts/table-formats-2026-breakdown/)
+13. Lance — [github](https://github.com/lancedb/lance) · [docs](https://docs.lancedb.com)
+14. Zilliz — *table formats + Lance/Vortex for AI workloads* — [FAQ](https://zilliz.com/ai-faq/iceberg-vs-delta-vs-hudi-vs-lance)
+15. DuckLake — announcement (May 27, 2025) — [ducklake.select](https://ducklake.select/2025-05-27/ducklake-01/) · [site](https://ducklake.select)
+16. DuckDB — *DuckLake: Simplifying the Lakehouse Ecosystem* (SIGMOD 2025) — [page](https://duckdb.org/library/ducklake-simplifying-the-lakehouse-ecosystem/)
+17. DE Podcast ep. 480 — authors on the simplicity bet — [episode](https://www.dataengineeringpodcast.com/episodepage/ducklake-easy-data-lakehouse-format-episode-480)
+18. DuckDB — *Quack: the client-server protocol* (May 12, 2026) — [blog](https://duckdb.org/2026-05-12/quack-remote-protocol) · [spec](https://duckdb.org/quack/)
+19. Verhoeks — *Speaking Quack: pure-Rust SQE; Iceberg⋈DuckDB* — [blog](https://jacob.verhoeks.org/blog/2026-05-26-speaking-quack/)
+20. MotherDuck — *If it quacks like a Duck* — [analysis](https://motherduck.com/blog/duckdb-client-server/)
+21. duckdblab — *DuckLake v1.0; Quack overview* — [intro](https://duckdblab.org/en/post/ducklake-v1-intro/) · [protocol](https://duckdblab.org/en/post/duckdb-quack-remote-protocol/)
+22. DuckDB — *Lakehouse formats support matrix* — [docs](https://duckdb.org/docs/current/lakehouse_formats)
+23. Lakekeeper — [github](https://github.com/lakekeeper/lakekeeper)
+24. Apache Polaris — [polaris.apache.org](https://polaris.apache.org/)
+25. Databricks — *Unity Catalog* — [github](https://github.com/unitycatalog/unitycatalog) · Futurum — [interop analysis](https://futurumgroup.com/insights/databricks-expands-unity-catalog-interoperability-is-true-open-lakehouse-finally-here/)
+26. CompareTheCloud — *Ossie & the governance layer* — [news](https://www.comparethecloud.net/news/apache-ossie-brings-vendor-neutral-governance-to-the-semantic-data-layer)
+27. Databricks — *Lakebase architecture docs* — [docs](https://docs.databricks.com/aws/en/oltp/projects/architecture)
+28. Databricks — *LTAP overview* — [docs](https://docs.databricks.com/aws/en/oltp/projects/ltap-overview)
+29. Reuters — *Fivetran + dbt Labs merge* (Oct 13, 2025) — [article](https://www.reuters.com/business/a16z-backed-data-firms-fivetran-dbt-labs-merge-all-stock-deal-2025-10-13/) · completion — [press](https://www.fivetran.com/press/fivetran-dbt-labs-complete-merger-to-create-the-data-infrastructure-for-trusted-ai-agents)
+30. dbt Labs — *merge announcement* — [blog](https://www.getdbt.com/blog/dbt-labs-and-fivetran-merge-announcement)
+31. Confluent — *WarpStream acquisition* (Sept 2024) — [press](https://www.confluent.io/press-release/confluent-acquires-warpstream-to-advance-next-gen-byoc-data-streaming/)
+32. IBM — *Confluent acquisition* ($11B, Dec 2025) — [newsroom](https://newsroom.ibm.com/2025-12-08-ibm-to-acquire-confluent-to-create-smart-data-platform-for-enterprise-generative-ai)
+33. Bitol/ODCS — [site](https://bitol.io) · [v3.1.0 release](https://bitol.io/bitol-announces-odcs-v3-1-0-stronger-smarter-and-stricter/) · [github](https://github.com/bitol-io/open-data-contract-standard)
+34. Data Contract CLI — ODCS support — [docs](https://docs.datacontract.com/open-data-contract-standard)
+35. Apache Fluss — [incubating project](https://fluss.apache.org)
+36. Bozzo — *RisingWave + iceberg-rust* — [blog](https://andreabozzo.github.io/AndreaBozzo/blog/en/posts/iceberg-risingwave-blog/)
+37. Neon — *Architecture decisions* — [blog](https://neon.com/blog/architecture-decisions-in-neon)
+38. *How Neon works internally* — pageservers, safekeepers, CoW branches — [letsbuildsolutions](https://letsbuildsolutions.com/blog/system-design/how-neon-works-internally-pageserver-architecture-branch-based-storage-and-compute-storage-separation/)
+39. Vanlightly — *Neon, ASDS ch. 3* — [analysis](https://jack-vanlightly.com/analyses/2023-11-15/neon-serverless-postgresql-asds-chapter-3)
+40. Neon docs — *Lakebase architecture overview* — [docs](https://neon.com/docs/introduction/architecture-overview)
+41. Verghese et al. — *Amazon Aurora*, SIGMOD 2017 — [ACM](https://dl.acm.org/doi/10.1145/3146316.3168717)
+42. AWS — *Aurora DSQL* — [docs](https://docs.aws.amazon.com/aurora-dsql/)
+43. PR Newswire — *Mem0 $24M* (Oct 28, 2025) — [release](https://www.prnewswire.com/news-releases/mem0-raises-24m-series-a-to-build-memory-layer-for-ai-agents-302597157.html)
+44. agentmarketcap — *memory landscape (Mem0/Letta/Zep/LangMem)* — [survey](https://agentmarketcap.ai/blog/2026-04-10/agent-memory-vendor-landscape-2026-letta-zep-mem0-langmem)
+45. 1337skills — *Production RAG 2026* — [guide](https://1337skills.com/blog/2026-06-12-production-rag-2026-hybrid-search-reranking-graphrag/)
+46. Anthropic — *Introducing Contextual Retrieval* — [blog](https://www.anthropic.com/news/contextual-retrieval)
+47. GraphRAG — [arXiv 2404.16130](https://arxiv.org/abs/2404.16130) · ColBERT — [arXiv 2004.12832](https://arxiv.org/abs/2004.12832) · ColPali — [arXiv 2407.01449](https://arxiv.org/abs/2407.01449)
+48. Appscale — *hybrid search + reranking internals* — [guide](https://appscale.blog/en/blog/hybrid-search-and-reranking-production-rag-bm25-dense-cross-encoder-2026)
+49. AI Learning Guides — *RAG production patterns & evals (RAGAS)* — [playbook](https://ailearningguides.com/rag-production-patterns-2026/)
+50. Gorilla — *Berkeley Function-Calling Leaderboard* — [leaderboard](https://gorilla.cs.berkeley.edu/leaderboard.html) · paper — [openreview](https://openreview.net/forum?id=2GmDdhBdDk)
+51. BenchLM — open-weight rankings — [tracker](https://benchlm.ai/best/open-source) *(third-party)* · Wavect — [comparison](https://wavect.io/blog/open-weight-llm-comparison-2026/)
+52. Presenc — *open-weight tool use & parsers* — [research](https://presenc.ai/research/open-weight-function-calling-tool-use-2026)
+53. sachinsharma — *open models at 90%+ BFCL* — [analysis](https://sachinsharma.dev/blogs/llm-function-calling-benchmarks-berkeley-leaderboard-2026)
+54. Bloomberg — *Modal/Baseten funding talks* (Sept 23, 2026; valuations reported) — [article](https://www.bloomberg.com/news/articles/2026-09-23/startups-modal-baseten-in-funding-talks-to-help-businesses-run-ai)
+55. Stackmaven — *inference platforms 2026* — [guide](https://stackmaven.io/news/inference-platforms-2026/)
+56. Together — serverless inference — [product](https://www.together.ai/serverless-inference)
+57. vLLM — [docs.vllm.ai](https://docs.vllm.ai) · SGLang — [github](https://github.com/sgl-project/sglang)
+58. Databricks — *Tecton joining* (Aug 2025) — [blog](https://www.databricks.com/blog/tecton-joining-databricks-power-real-time-data-personalized-ai-agents) · Feast — [github](https://github.com/feast-dev/feast)
+59. Langfuse — [langfuse.com](https://langfuse.com) · Braintrust — [braintrust.dev](https://www.braintrust.dev)
+60. Anthropic — *Introducing MCP* — [news](https://www.anthropic.com/news/model-context-protocol) · spec — [modelcontextprotocol.io](https://modelcontextprotocol.io)
+61. HappyRock — *MCP + A2A under the Agentic AI Foundation* — [report](https://happyrock.cloud/blog/2026-09-01_b_en/)
+62. Linux Foundation — *A2A one-year milestones* (150+ orgs) — [press](https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year)
+63. Atlan — *MCP, A2A, OSI layers* — [explainer](https://atlan.com/know/agent-interoperability-protocols/)
+64. anthropics/skills — [github](https://github.com/anthropics/skills) · skillmd — [format guide](https://skillmd.com/blog/ai-agent-skills-complete-guide)
+65. agentmarketcap — *skills cross-vendor adoption* — [report](https://agentmarketcap.ai/blog/2026-04-16/anthropic-agent-skills-open-standard-cross-vendor-adoption)
+66. paperclipped — *SKILL.md open standard (Dec 18, 2025)* — [analysis](https://www.paperclipped.de/en/blog/agent-skills-open-standard-interoperability/)
+67. Databricks — *AI/BI & Genie release notes* — [docs](https://docs.databricks.com/aws/en/ai-bi/release-notes/2026) · Atlan — [DAIS 2026 recap](https://atlan.com/know/ai-agent/databricks/databricks-data-ai-summit-2026-announcements/)
+68. Valiotti — *Cortex Analyst vs Genie* — [comparison](https://valiotti.com/snowflake-cortex-vs-databricks-genie-2026/)
+69. Apache Ossie — [ossie.apache.org](https://ossie.apache.org/updates/archive/2025/) · Bruno Digital — [analysis](https://bruno.digital/news/apache-ossie-puts-the-semantic-layer-on-neutral-ground)
+70. Genloop — *agentic BI tool comparison* — [guide](https://genloop.ai/blogs/best-agentic-bi-tools-for-enterprise-in-2026)
+71. Temporal — [temporal.io](https://temporal.io) — durable execution for agent workflows
+72. Shareuhack — *MCP security advisories & CVE roundup (2026)* — [guide](https://www.shareuhack.com/en/posts/best-mcp-servers-guide-2026) · septimlabs — [caveats](https://septimlabs.com/blog/best-mcp-servers-2026)
+
+73. Fivetran — *Transformations: third-party orchestration* (integrated scheduling) — [docs](https://www.fivetran.com/docs/transformations/orchestration) · [dbt transformations](https://fivetran.com/docs/transformations/dbt)
+74. dbt Labs — *dbt + Fivetran* (jobs run as soon as data lands) — [page](https://www.getdbt.com/data-platforms/fivetran)
+75. Prefect — *Event-driven dbt: trigger transformations the moment Fivetran syncs finish* — [blog](https://www.prefect.io/blog/event-driven-dbt-with-fivetran-and-prefect)
+76. Apache Airflow — *Event-driven scheduling* (3.x) — [docs](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/event-scheduling.html)
+77. Apache Airflow — *Asset-aware scheduling* — [docs](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/asset-scheduling.html)
+78. Dagster — *dbt component* (models as assets) — [docs](https://docs.dagster.io/integrations/libraries/dbt)
+79. Dagster — *Orchestrating dbt with Dagster* — [blog](https://dagster.io/blog/orchestrating-dbt-with-dagster)
+80. Astronomer Cosmos — dbt DAGs in Airflow — [github](https://github.com/astronomer/astronomer-cosmos)
+81. SQLMesh — *Signals guide* — [docs](https://sqlmesh.readthedocs.io/en/stable/guides/signals/)
+82. SQLMesh — *Incremental by time* + model kinds — [docs](https://sqlmesh.readthedocs.io/en/stable/guides/incremental_time/) · CDC practice — [discussion](https://github.com/SQLMesh/sqlmesh/discussions/4777)
+83. Databricks — *Structured Streaming triggers* (`available_now`) — [docs](https://docs.databricks.com/aws/en/structured-streaming/triggers)
+84. dbt Labs — *Incremental patterns for near real-time data* (MERGE, CDC, microbatch) — [guide](https://docs.getdbt.com/best-practices/how-we-handle-real-time-data/2-incremental-patterns)
+85. dbt Labs — *Model contracts* — [docs](https://docs.getdbt.com/docs/mesh/govern/model-contracts)
+86. Confluent — *Data contracts in Schema Registry* (quality rules, migration rules) — [docs](https://docs.confluent.io/platform/current/schema-registry/fundamentals/data-contracts.html)
+87. Bauplan — *Data contracts keep Iceberg pipelines reliable* (three enforcement points) — [article](https://bauplanlabs.com/agentic-resources/data-contracts-for-apache-iceberg-pipelines)
+88. Shirokoff — *Data contracts in practice: ODCS, dbt, streaming, producer ownership* — [essay](https://shirokoff.ca/blog/data-contracts)
+89. dataobservability — *Contracts: tools, dbt setup, CI enforcement* — [page](https://dataobservability.ai/data-contracts)
+90. DataOps — *Contracts: versioning & evolution decision framework* — [guide](https://www.datasops.com/blog/data-contracts-versioning)
+91. Xebia — *Data contracts and schema enforcement with dbt* — [blog](https://xebia.com/blog/data-contracts-and-schema-enforcement-with-dbt/)
+
+*Fact-check notes:* deal valuations ([29][32][54]) and model-leaderboard positions ([50][51]) are reported figures — press-vetted but moving; DuckLake/Quack dates confirmed via official blogs; "most Neon DBs created by agents" remains a vendor claim (covered in [evolution essay's notes](/writing/evolution-of-data-architectures/)); Arroyo's maintenance status is flagged, not confirmed; Fluss is incubating — verify graduation before production. Re-verify anything load-bearing quarterly; the canonical sources above are primary where possible.

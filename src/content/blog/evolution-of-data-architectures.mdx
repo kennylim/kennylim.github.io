@@ -1,0 +1,203 @@
+---
+title: "Sixty years of data architecture — a practitioner's survey"
+description: "From Codd to Lakebase to agent-first systems: every generation of data architecture, its mechanism, its failure, and the lesson for today's architect — consolidated, fact-checked, and extended with the 2024–2026 convergence and falsifiable predictions for what comes next."
+date: 2026-09-28
+tags: ["data-to-ai", "architecture", "research"]
+---
+import EvolutionTimeline from "../../components/EvolutionTimeline.astro";
+import PhaseDiagram from "../../components/PhaseDiagram.astro";
+
+## Abstract
+
+Data-management architecture has cycled through seven identifiable generations in fifty-six years, each motivated by a specific failure of its predecessor rather than by abstract preference. This survey reconstructs that causal chain — OLTP (1970), the data warehouse and OLAP (1988), the data lake (2006–2012), the cloud data warehouse (2012–2018), the lakehouse (2019–2024), its open successor ("lakehouse 2.0," 2024–2026), and the transactional-lakehouse convergence now branded Lakebase/LTAP (2025→) — validating every load-bearing date, product and claim against primary sources. It then documents the 2024–2026 consolidation (formats, catalogs, streaming, inference, agent protocols) as evidence that the *workload* driving generation eight is autonomous agents, and closes with falsifiable predictions and an actionable checklist for architects. The consistent finding: **every generation reduces copies of the truth and widens its consumers; each leaves exactly one blind spot — and the blind spots are now clustered around meaning, memory, and the identity of the consumer.** Companion practitioner piece: [The 2026 data-and-AI stack](/writing/the-2026-data-ai-stack/).
+
+## 1. Introduction and method
+
+Every vendor deck sells "the end of history." History disagrees seven times over. This survey reads each architecture as a *reaction*: a system optimized for one workload becomes dominant, everything else routes around it, and the route-around (almost always ETL) accumulates failures that spawn the next generation [12][40].
+
+**Method.** Claims are anchored to primary sources where possible — papers (Codd 1970, CIDR 2021, SIGMOD/ICLR 2025–26), vendor engineering docs and press releases, standards bodies (Apache, Linux Foundation), and dated financial press for deal values. Secondary analyses (leaderboard trackers, landscape blogs) are used only for market color and are flagged. Discrepancies (e.g., Snowflake's GA year, book release dates) are reported, not smoothed. All sources: §8; limitations: §7.
+
+<EvolutionTimeline caption="Figure 1 — seven generations, 1970–2026. Each band: the systems that solved the previous band's failure. Dates per §8." />
+
+**A note on periodization.** The bands overlap by years; "generation" here means *the architecture that captured new workloads first*, not the date a product shipped. Practitioners in 2026 run all seven simultaneously.
+
+## 2. The seven generations
+
+Each generation below is presented as the contemporaries presented it: the mechanism, the failure it solved, and the blind spot it left — which is the failure of the next one.
+
+### 2.1 OLTP, 1970–1988 — correctness, and a blind spot
+
+Codd's relational model (1970) [1] gave declarative queries and transaction semantics; Oracle (1979), IBM DB2 (1983), SQL Server (1989) and Postgres (1989) industrialized row-wise B+trees, write-ahead logging and the ACID properties (term codified 1983) [2]. **Failure:** the database running the business could not analyze it — scans starve transactions.
+
+<PhaseDiagram kind="oltp" caption="Figure 2 — point transactions vs range aggregations contend on the same pages." />
+
+### 2.2 The warehouse & OLAP, 1988–2006 — analytics, exiled
+
+Inmon defined the data warehouse in 1988 ("subject-oriented, integrated, time-variant, non-volatile") [2]; Kimball's dimensional modeling made it practice (1996) [3]; Codd named the workload OLAP in 1993 [4]. Teradata's shared-nothing MPP, Essbase cubes, SSAS, Netezza's columnar appliances followed [5]. **Failure:** T+1 batch copies, licensing gravity, on-prem scaling walls, and no home for unstructured data or ML.
+
+<PhaseDiagram kind="warehouse" caption="Figure 3 — the original detour: a second copy of reality, refreshed nightly." />
+
+### 2.3 The data lake, 2006–2013 — cheap everything, trusted by no one
+
+GFS (2003) and MapReduce (2004) became Hadoop at Yahoo (2006) [6]; S3 (2006) made storage infinite [7]; James Dixon named the destination in 2010 — the *data lake*, schema-on-read [8]. **Failure:** the swamp — no ACID, no constraints, partitions discovered by archaeology, governance as PowerPoint; Hive metastores strained under petabyte directories (the direct impetus for Iceberg at Netflix [9]).
+
+<PhaseDiagram kind="lake" caption="Figure 4 — schema-on-read flexibility, bought with ACID, types and governance." />
+
+### 2.4 The cloud warehouse, 2012–2018 — elastic SQL, still not for machines
+
+Redshift (2012), BigQuery (preview 2010, GA Nov 2011) and Snowflake (founded 2012 by Oracle/Vectorwise architects, GA 2014–15) executed the same idea — **separate storage from compute**, one copy in object storage, elastic stateless clusters (Snowflake's architecture: immutable micro-partitions, multi-cluster shared-data, zero-copy clones, time travel) [10][11]; Aurora (2015) ported the trick to OLTP [12]. **Failure:** ML and files stayed exiled; enterprises ran two estates and re-copied between them.
+
+<PhaseDiagram kind="clouddw" caption="Figure 5 — SQL scaled; the ML estate stayed outside the toll booth." />
+
+### 2.5 The lakehouse, 2019–2024 — one copy, honestly this time
+
+Table formats put warehouse semantics on open files: Hudi at Uber (2017), Delta Lake (Databricks, 2019) [13], **Iceberg** (Netflix 2017–18, Apache 2018): metadata trees decoupling table state from directories, hidden partitioning, schema evolution without rewrites [9][14]. The CIDR 2021 paper (Armbrust, Ghodsi, Xin, Zaharia) argued the warehouse *withers* before open formats + first-class ML + warehouse governance [15]; medallion layering became the canonical shape [16]. **Two failures:** (a) formats and catalogs behind vendor walls — détente arrived in 2024 (Tabular acquisition, Polaris donated, Unity Catalog opened, S3 Tables GA) [17][18][19][20]; (b) *physics*: scan-based commits serve BI refreshes in seconds, not application traffic in milliseconds — the operational store stayed across the wall, fed by CDC.
+
+<PhaseDiagram kind="lakehouse" caption="Figure 6 — immutable Parquet + metadata snapshots: one copy, time travel — behind a vendor's walls." />
+
+### 2.6 Lakehouse 2.0, 2024–2026 — the open system 1.0 promised
+
+The promise kept: **Iceberg as the de facto table contract, REST catalogs as the interface, engines as swappable clients**, governance at the catalog [14][18][19]. Iceberg v3 (2025) closed key gaps — deletion vectors, row lineage (lake-native CDC), VARIANT, geospatial [21][22]. **Remaining failure:** transactional data — single-row ACID, constraints, milliseconds — still lived outside.
+
+<PhaseDiagram kind="lakehouse2" caption="Figure 7 — tables and catalogs as public specs; engines as swappable clients." />
+
+### 2.7 Lakebase, 2025→ — the last copy, and the agent payoff
+
+The last copy moves onto the substrate: Databricks acquired **Neon** (May 2025, ~$1B reported [23][24][25]) — serverless Postgres whose design splits ephemeral computes, quorum-replicated WAL safekeepers, and pageservers reconstructing LSN-indexed history on object storage, making branching metadata-cheap [26][27] — and shipped it inside Unity Catalog as **Lakebase** (GA 2025–26, AWS Feb 2026) [28][29]; Databricks brands the pattern **LTAP** [30]. Snowflake countered with **Crunchy Data/Snowflake Postgres** (June 2025, ~$250M per WSJ) [31][32]. AWS's DSQL generalized the serverless-transactional move [33]. Why the rush: agents — Databricks reports most Neon databases are now created by agents, not humans [25]; MCP (Nov 2024) made databases first-class agent tools [34].
+
+<PhaseDiagram kind="lakebase" caption="Figure 8 — transactional rows and lake tables share one substrate, one catalog, one governance." />
+
+## 3. Comparative analysis
+
+| Generation | Canonical systems | Solved | Blind spot left | Lesson for architects |
+|---|---|---|---|---|
+| OLTP | Oracle, DB2, Postgres | safe concurrency | analytics at scale | engines serve two masters badly |
+| Warehouse | Teradata, cubes | governed analytics | freshness, openness, ML | a second copy is a second politics |
+| Data lake | Hadoop, S3, Hive | cheap flexibility | trust, ACID, governance | schema is a contract, not a phase |
+| Cloud DW | Snowflake, BigQuery | elastic SQL | files & ML exiled | separation is the master trick |
+| Lakehouse 1.0 | Delta, Iceberg + vendor walls | one copy, ML-native | open multi-engine access | formats outlive features |
+| Lakehouse 2.0 | Iceberg + REST catalogs | openness, governance-at-catalog | no transactional path | the catalog is where power moves |
+| Lakebase | Lakebase, Snowflake Postgres | OLTP+OLAP, one substrate | maturity, lock-in, agent edges | state is data at application speed |
+
+Two invariants emerge from fifty-six years [15][40]: **(1) copy-count and consumer-count trend opposite — each generation serves more consumers from fewer copies; (2) the frontier workload changes before the architecture does** — analysts before ML, ML before agents. Whoever designs for the last workload is sophisticated, and late.
+
+## 4. The present: 2024–2026 as a single convergence event
+
+The survey's history explains the present, but the present deserves its own evidence because it looks like a phase transition [35].
+
+**Consolidation read as a map of missing pieces.** IBM acquired Confluent (announced Dec 2025, ~$11B; Confluent itself had bought WarpStream's BYOC Iceberg-native streaming in 2024) [36][37]; Fivetran and dbt Labs merged (announced Oct 2025, ~$600M combined per Reuters; completed June 2026 — the pitch is literally "infrastructure for trusted AI agents") [38][39]; Databricks completed a three-year stack (Tabular → Neon → Tecton) [17][23][41]; ClickHouse, the real-time columnar dark horse, waits in the IPO queue [42]. Formats, catalogs, ingestion, transactions, features — all acquired into platforms.
+
+**Research already renamed the workload.** CIDR 2026 — the conference that midwifed the lakehouse — accepted *"Supporting Our AI Overlords: Redesigning Data Systems to be Agent-First,"* which defines **agentic speculation** (mass-scale, redundant, steerable exploration I/O) and calls for agent-first interfaces, processing and **memory stores** [43][44]; KathDB's explainable multimodal DBMS and LLM-compression economics round out the program [44][45]. SIGMOD 2026 mirrors it (LLM-serving-for-agents; ByteDance's unified train/serve storage) [46]. Meanwhile **Spider 2.0** (ICLR 2025) measures the gap honestly: on 632 real enterprise text-to-SQL workflows, the best models solve a small fraction [47].
+
+**Neutral rails replaced the protocol wars.** MCP was donated to the Linux Foundation's Agentic AI Foundation (Dec 2025); Google's A2A — into which IBM's ACP had merged — joined in August 2026 with 150+ supporting organizations [34][48][49]. The **Agent Skills (SKILL.md)** spec opened Dec 2025 and reached 40+ implementations by mid-2026 [50][51]. Semantic definitions are standardizing as Open Semantic Interchange (**Apache Ossie**) with Snowflake, Databricks, dbt and 50+ orgs [52][53]; data contracts as ODCS v3.1 [54]. Gartner's scorecard: AI agents and "AI-ready data" are the two fastest-advancing technologies on its 2025 Hype Cycle; task-specific agents in 40% of enterprise apps by end-2026, ~30% of software revenue ($450B) by 2035 [55][56][57].
+
+**The layer cake taking shape:** agent memory systems (Mem0 — $24M Oct 2025 — Letta, Zep/Graphiti) between context window and database [58][59]; hybrid retrieval engineering as the default RAG discipline [60][61]; streaming databases with disaggregated S3 state as the Kappa revival [62][63]; AI-native formats like Lance carrying what never fit a table [71]; and open-weight models strong enough that picking by *tool-use benchmark* (BFCL v4) and license is now the rational move [64][65][66].
+
+## 5. Open problems (survey findings)
+
+| # | Problem | Evidence | Who's working it |
+|---|---|---|---|
+| 1 | Agents can't yet read enterprise meaning reliably | Spider 2.0: a small fraction solvable [47] | Ossie semantics [52], agent-first interfaces [43], evals |
+| 2 | Memory that doesn't rot: temporal validity, dedupe, forgetting | memory-vendor benchmarks disagree [58][59] | Mem0/Letta/Zep; CIDR memory-store agenda [43] |
+| 3 | Agent identity, quota, write blast-radius | no standard yet; CVEs already logged in MCP servers [67] | catalogs (the likely seat), registries |
+| 4 | Economics of speculation at scale | CIDR'26 framing [43]; inference repricing (Modal/Baseten talks at $15–26B) [68] | serving platforms, compression research [45] |
+| 5 | Data-as-attack-surface (injection through tables, embeddings, docs) | open; not productized | earliest-stage opportunity |
+
+## 6. What comes next — falsifiable claims
+
+Stated as predictions with expiry dates, because a survey that only looks back is a brochure:
+
+- **P1 (by 2027):** the catalog — not the table format — is the contested layer, now including agent identity and tool permissions. *Falsified by:* formats themselves gaining native policy engines.
+- **P2 (by 2028):** "agentic data product" — a dataset + contracts + MCP surface + memory — is the default unit of data work; dashboards become a view on it. *Falsified by:* BI incumbents keeping human-first semantics proprietary and winning.
+- **P3 (by 2028):** lake-native transactions (deletion vectors + row lineage + LTAP) remove the standing CDC pipeline from ≥50% of new platforms. *Falsified by:* OLTP-on-object-store latency ceilings forcing a permanent separate estate.
+- **P4 (by 2029):** retrieval and weights converge into "context infrastructure" — the RAG-vs-fine-tune debate resolves per-workload, priced by tokens-per-decision; the organizational thesis that *proprietary domain knowledge, surfaced into agents' context,* is the durable moat becomes standard startup doctrine [70].
+- **P5 (structural, no date):** the pattern continues — whatever becomes dominant spawns its route-around. The honest null hypothesis is that *agents are the analysts of 2026*: ubiquitous, underestimated, and about to be architecturally central.
+
+## 7. Threats to validity
+
+Dates in §2 reflect announcements, not availability; several GA years (Snowflake 2014/2015 [10][11]) differ across sources. Deal values for Neon/Tecton/Crunchy/Confluent are press-reported or vendor-stated [24][31][36][41]. The agent-created-database share [25] and YC-cohort statistics [69][56] are vendor/analyst claims without audit. Benchmark numbers (BFCL, Spider 2.0) move quarterly. My interpretation — that all seven generations are the same copy-count/consumer-count experiment — is a thesis, not a finding; §3 carries the counter-evidence (the blind spots genuinely differ in kind: legal, economic, physical).
+
+## 8. The architect's checklist (actionable summary)
+
+1. **Count the copies** on your critical data path. Every copy above zero is a prior generation's blind spot living in your architecture [15].
+2. **Put governance where reads AND writes happen** — the catalog is the seat of power; choose it open (REST/ODCS/Ossie) so you can change engines like tires [14][18][54].
+3. **Serve two clocks on one substrate:** the log plane for *now* (agents, features, context), the table plane for *always* (audit, models, metrics) [62][30].
+4. **Treat transactions as agent memory** and the lake as the archive; branches are for working, not for keeping [26][23].
+5. **Encode meaning once** (semantic layer, contracts, skills) and let humans and agents read it from the same file [52][54][50].
+6. **Design for the consumer that doesn't exist yet** — every generation's failure was a workload problem, never a storage problem [43][12].
+
+## 9. References
+
+1. Codd, E.F. — *A Relational Model of Data for Large Shared Data Banks*, CACM 1970 — [dl.acm.org/doi/10.1145/362384.362685](https://dl.acm.org/doi/10.1145/362384.362685)
+2. *Bill Inmon & the data warehouse (1988)* — [en.wikipedia.org/wiki/Bill_Inmon](https://en.wikipedia.org/wiki/Bill_Inmon)
+3. *Kimball, R. — The Data Warehouse Toolkit (1996)* — [en.wikipedia.org/wiki/Ralph_Kimball](https://en.wikipedia.org/wiki/Ralph_Kimball)
+4. *OLAP (Codd 1993, twelve rules)* — [en.wikipedia.org/wiki/On-line_analytical_processing](https://en.wikipedia.org/wiki/On-line_analytical_processing)
+5. *Teradata / MPP lineage* — [en.wikipedia.org/wiki/Teradata](https://en.wikipedia.org/wiki/Teradata)
+6. *Hadoop from GFS/MapReduce, Yahoo 2006* — [en.wikipedia.org/wiki/Apache_Hadoop](https://en.wikipedia.org/wiki/Apache_Hadoop)
+7. *Amazon S3 (2006; strong consistency 2020)* — [en.wikipedia.org/wiki/Amazon_S3](https://en.wikipedia.org/wiki/Amazon_S3)
+8. Kanidata — *Data Platform Evolution* (Dixon's "data lake," 2010) — [article](https://www.kanidata.com/learn/data-platform-evolution-from-paper-ledgers-to-the-lakehouse/)
+9. Netflix TechBlog — *Introducing Iceberg* — [blog](https://netflixtechblog.com/introducing-iceberg-b8fa98b2f35f)
+10. *Snowflake Inc.* — [en.wikipedia.org/wiki/Snowflake_Inc.](https://en.wikipedia.org/wiki/Snowflake_Inc.) — founding & GA dates; architecture per Dageville et al., *The Snowflake Elastic Data Warehouse*, ICDE 2016 (indexed via [11]'s primary-source timeline)
+11. Konishi — *Cloud DW history: BigQuery preview May 19, 2010; GA dates from primary sources* — [timeline](https://hidekazu-konishi.com/entry/cloud_data_warehouse_history_and_timeline.html) · *BigQuery* — [en.wikipedia.org/wiki/BigQuery](https://en.wikipedia.org/wiki/BigQuery)
+12. Verghese et al. — *Amazon Aurora: Design Considerations*, SIGMOD 2017 — [dl.acm.org](https://dl.acm.org/doi/10.1145/3146316.3168717)
+13. *Delta Lake* — [delta.io](https://delta.io/)
+14. *Apache Iceberg — specs, REST catalog* — [iceberg.apache.org](https://iceberg.apache.org/)
+15. Armbrust, Ghodsi, Xin, Zaharia — *Lakehouse: A New Generation of Open Platforms…*, CIDR 2021 — [cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf](https://www.cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf)
+16. Databricks — *Medallion architecture* — [docs](https://docs.databricks.com/aws/en/lakehouse/medallion)
+17. Databricks — *Acquires Tabular* (June 2024) — [press](https://www.databricks.com/company/newsroom/press-releases/databricks-acquires-tabular)
+18. *Apache Polaris* — [polaris.apache.org](https://polaris.apache.org/)
+19. *Unity Catalog (open)* — [github.com/unitycatalog/unitycatalog](https://github.com/unitycatalog/unitycatalog)
+20. AWS — *S3 Tables, announced re:Invent Dec 2024* — [press](https://press.aboutamazon.com/2024/12/amazon-s3-expands-capabilities-with-managed-apache-iceberg-tables-for-faster-data-lake-analytics-and-automatic-metadata-generation-to-simplify-data-discovery-and-understanding)
+21. Databricks — *Apache Iceberg v3* (June 2025) — [blog](https://www.databricks.com/blog/apache-icebergtm-v3-moving-the-ecosystem-towards-unification)
+22. AWS — *Iceberg v3 deletion vectors & row lineage* (Nov 2025) — [blog](https://aws.amazon.com/blogs/big-data/accelerate-data-lake-operations-with-apache-iceberg-v3-deletion-vectors-and-row-lineage/)
+23. Databricks — *Agrees to Acquire Neon* (May 14, 2025) — [press](https://www.databricks.com/company/newsroom/press-releases/databricks-agrees-acquire-neon-help-developers-deliver-ai-systems) · CNBC — [article](https://www.cnbc.com/2025-05-14/databricks-is-buying-database-startup-neon-for-about-1-billion.html)
+24. The Information — confirmation of ~$1B — [briefing](https://www.theinformation.com/briefings/databricks-confirms-1-billion-acquisition-database-startup-neon)
+25. EnterpriseDB — *agent-created databases on Neon* (vendor claim) — [analysis](https://www.enterprisedb.com/news/latest/databricks-1b-neon-deal-yet-another-play-vertically-bundled-agentic-solutions)
+26. Neon — *Architecture decisions* — [blog](https://neon.com/blog/architecture-decisions-in-neon) · *How Neon works internally* — [letsbuildsolutions](https://letsbuildsolutions.com/blog/system-design/how-neon-works-internally-pageserver-architecture-branch-based-storage-and-compute-storage-separation/)
+27. Vanlightly — *Neon: ASDS ch. 3* — [analysis](https://jack-vanlightly.com/analyses/2023-11-15/neon-serverless-postgresql-asds-chapter-3)
+28. Databricks — *Lakebase architecture docs* — [docs](https://docs.databricks.com/aws/en/oltp/projects/architecture) · TechTarget — [AWS GA, Feb 3 2026](https://www.techtarget.com/searchDataManagement/news/366638723/Databricks-launches-PostgreSQL-Lakebase-to-aid-AI-developers)
+29. Databricks — *Lakebase product* — [databricks.com/product/lakebase](https://www.databricks.com/product/lakebase)
+30. Databricks — *LTAP architecture* — [docs](https://docs.databricks.com/aws/en/oltp/projects/ltap-overview)
+31. Snowflake — *Acquires Crunchy Data; Snowflake Postgres* (June 2025) — [blog](https://www.snowflake.com/en/blog/snowflake-postgres-enterprise-ai-database/)
+32. Constellation Research — *~$250M per WSJ* — [news](https://www.constellationr.com/insights/news/snowflake-makes-its-postgres-move-acquires-crunchy-data)
+33. AWS — *Aurora DSQL* — [docs](https://docs.aws.amazon.com/aurora-dsql/)
+34. Anthropic — *Introducing MCP* (Nov 25, 2024) — [news](https://www.anthropic.com/news/model-context-protocol)
+35. Modern Data 101 — *Lakehouse 2.0: the open system 1.0 was meant to be* — [essay](https://www.moderndata101.com/blogs/lakehouse-2-0-the-open-system-that-lakehouse-1-0-was-meant-to-be-part-1)
+36. IBM — *Definitive agreement to acquire Confluent* ($31/sh, ~$11B; Dec 8, 2025) — [newsroom](https://newsroom.ibm.com/2025-12-08-ibm-to-acquire-confluent-to-create-smart-data-platform-for-enterprise-generative-ai)
+37. Confluent — *Acquires WarpStream* (Sept 2024) — [press](https://www.confluent.io/press-release/confluent-acquires-warpstream-to-advance-next-gen-byoc-data-streaming/)
+38. Reuters — *Fivetran, dbt Labs to merge* (Oct 13, 2025) — [article](https://www.reuters.com/business/a16z-backed-data-firms-fivetran-dbt-labs-merge-all-stock-deal-2025-10-13/)
+39. Fivetran — *merger completion* (June 1, 2026) — [press](https://www.fivetran.com/press/fivetran-dbt-labs-complete-merger-to-create-the-data-infrastructure-for-trusted-ai-agents) · dbt Labs — [blog](https://www.getdbt.com/blog/dbt-labs-and-fivetran-merge-announcement)
+40. Wiedemann/Galois lineage note — *From WAL to Kafka: the log thesis* — [essay](https://developer-playground.com/blog/software-engineer/list/from-wal-to-kafka-the-log/)
+41. Databricks — *Tecton is joining* (Aug 2025) — [blog](https://www.databricks.com/blog/tecton-joining-databricks-power-real-time-data-personalized-ai-agents)
+42. ipos.fyi — *ClickHouse IPO tracker (expected 2026)* — [tracker](https://ipos.fyi/tracker/clickhouse-ipo) *(secondary)*
+43. Liu et al. — *Supporting Our AI Overlords: Redesigning Data Systems to be Agent-First*, CIDR 2026 — [pdf](https://www.vldb.org/cidrdb/papers/2026/p32-liu.pdf)
+44. CIDR 2026 — accepted papers (incl. KathDB) — [cidrdb.org/cidr2026/papers.html](https://www.cidrdb.org/cidr2026/papers.html) · [proceedings](https://www.vldb.org/cidrdb/2026/index.html)
+45. Kipf et al. — *Waiting to Decompress: The Economics of LLM-Based Compression*, CIDR 2026 — [dblp](https://dblp.org/rec/conf/cidr/2026)
+46. SIGMOD/PODS 2026 (Bengaluru) — accepted & industry papers — [research](https://2026.sigmod.org/sigmod_papers.shtml) · [industry](https://2026.sigmod.org/sigmod_industry_papers.shtml)
+47. Lei et al. — *Spider 2.0*, ICLR 2025 oral — [arXiv](https://arxiv.org/abs/2411.07763) · [site](https://spider2-sql.github.io)
+48. Linux Foundation — *A2A one-year: 150+ orgs, cloud integrations* (Apr 2026) — [press](https://www.linuxfoundation.org/press/a2a-protocol-surpasses-150-organizations-lands-in-major-cloud-platforms-and-sees-enterprise-production-use-in-first-year)
+49. HappyRock — *MCP & A2A under the Agentic AI Foundation* (governance dates) — [report](https://happyrock.cloud/blog/2026-09-01_b_en/) *(secondary)*
+50. *anthropics/skills* — [github](https://github.com/anthropics/skills) · agentmarketcap — [adoption](https://agentmarketcap.ai/blog/2026-04-16/anthropic-agent-skills-open-standard-cross-vendor-adoption)
+51. skillmd — *Agent skills: complete guide* — [guide](https://skillmd.com/blog/ai-agent-skills-complete-guide)
+52. Apache Ossie (OSI) — [ossie.apache.org](https://ossie.apache.org/updates/archive/2025/) · Bruno Digital — [analysis](https://bruno.digital/news/apache-ossie-puts-the-semantic-layer-on-neutral-ground)
+53. CompareTheCloud — *Ossie founding partners* — [news](https://www.comparethecloud.net/news/apache-ossie-brings-vendor-neutral-governance-to-the-semantic-data-layer)
+54. Bitol/ODCS — [v3.1.0](https://bitol.io/bitol-announces-odcs-v3-1-0-stronger-smarter-and-stricter/) · [github](https://github.com/bitol-io/open-data-contract-standard)
+55. Gartner — *Hype Cycle for AI 2025* — [press](https://www.gartner.com/en/newsroom/press-releases/2025-08-05-gartner-hype-cycle-identifies-top-ai-innovations-in-2025)
+56. Gartner — *40% of enterprise apps, task-specific agents by 2026; $450B by 2035* — [press](https://www.gartner.com/en/newsroom/press-releases/2025-08-26-gartner-predicts-40-percent-of-enterprise-apps-will-feature-task-specific-ai-agents-by-2026-up-from-less-than-5-percent-in-2025)
+57. xpln — *AI-ready data on the Hype Cycle, explained* — [analysis](https://xpln.com/insights/detail/ai-ready-data-and-agentic-ai-gaining-momentum) *(secondary)*
+58. PR Newswire — *Mem0, $24M for agent memory* (Oct 28, 2025) — [release](https://www.prnewswire.com/news-releases/mem0-raises-24m-series-a-to-build-memory-layer-for-ai-agents-302597157.html)
+59. agentmarketcap — *memory landscape (Mem0/Letta/Zep/LangMem)* — [survey](https://agentmarketcap.ai/blog/2026-04-10/agent-memory-vendor-landscape-2026-letta-zep-mem0-langmem)
+60. Anthropic — *Introducing Contextual Retrieval* — [engineering](https://www.anthropic.com/news/contextual-retrieval)
+61. Ning et al. — *From Local to Global: A GraphRAG Approach*, arXiv 2404.16130 — [arXiv](https://arxiv.org/abs/2404.16130) · 1337skills — [production RAG 2026](https://1337skills.com/blog/2026-06-12-production-rag-2026-hybrid-search-reranking-graphrag/) *(secondary)*
+62. RisingWave — *event streaming for agentic AI* — [github](https://github.com/risingwavelabs/risingwave) · piStack — [streaming DB comparison](https://www.pistack.xyz/posts/2026-04-23-risingwave-vs-materialize-vs-ksqldb-self-hosted-streaming-databases-guide-2026/)
+63. LabHub — *state management in stream processing 2026 (RocksDB vs disaggregated)* — [deep dive](https://labhub.hopto.org/blog/culture/2026-05-16-stream-processing-2026-kafka-streams-flink-sql-risingwave-materialize-arroyo-ksqldb-bytewax-decodable-deep-dive) *(secondary)*
+64. Gorilla — *Berkeley Function-Calling Leaderboard* — [leaderboard](https://gorilla.cs.berkeley.edu/leaderboard.html)
+65. Presenc — *open-weight function calling* — [research](https://presenc.ai/research/open-weight-function-calling-tool-use-2026)
+66. BenchLM — *open-weight rankings* — [tracker](https://benchlm.ai/best/open-source) *(third-party; verify on source)*
+67. Shareuhack — *MCP security advisories & CVE roundup* — [guide](https://www.shareuhack.com/en/posts/best-mcp-servers-guide-2026)
+68. Bloomberg — *Modal/Baseten talks at $15B/$26B* (Sept 23, 2026) — [article](https://www.bloomberg.com/news/articles/2026-09-23/startups-modal-baseten-in-funding-talks-to-help-businesses-run-ai) *(reported)*
+69. agentiwise — *373 YC AI startups analyzed* — [study](https://agentiwise.substack.com/p/i-analyzed-373-ai-startups-selected) *(unofficial)* · YC — [RFS](https://www.ycombinator.com/rfs)
+70. Lee, K. — *AI Native: The Mandate to Transform Your Company* (2026) — [publisher](https://www.penguinrandomhouse.com/books/854461/ai-native-by-kai-fu-lee/) · [site](https://www.ainativebook.com)
+71. *Lance — open multimodal lakehouse format* — [github](https://github.com/lancedb/lance) · Zilliz — [AI workloads & formats](https://zilliz.com/ai-faq/iceberg-vs-delta-vs-hudi-vs-lance)
+
+*P4/P5 note on the book:* digital edition dated Sept 15, 2026 [70]; print (Crown Currency) listed Nov 3, 2026 — release date varies by edition.

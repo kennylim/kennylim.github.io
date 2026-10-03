@@ -1,0 +1,114 @@
+---
+import Layout from "../layouts/Layout.astro";
+import CompanyLogo from "../components/CompanyLogo.astro";
+const jobs = [
+  { co: "International Atomic Energy Agency", role: "Senior Data Engineer / Architect", when: "2024–present", url: "https://www.iaea.org", mark: "IA",
+    items: [
+      "Architect and hands-on engineer of SG Lake — a greenfield, open-source, air-gapped lakehouse on Kubernetes consolidating Safeguards data for analytics and AI.",
+      "Authored the platform architecture and white paper, audited by PwC against all five Well-Architected pillars.",
+      "Production ingestion services, Airflow pipelines and dbt models on Apache Iceberg; Trino for federated query, Spark for transformation; deploying, scaling and maintaining it as multiple project teams onboard.",
+      "Built the observability and quality stack — Prometheus/Grafana SLOs, data contracts, dbt tests, Great Expectations, OpenMetadata lineage. The gold layer is the single source of truth for the agency's data science and AI teams.",
+    ] },
+  { co: "Reach Financial", role: "Lead Data Engineer", when: "NYC · 2023–2024", url: "https://www.reachfinancial.com", mark: "RF",
+    items: [
+      "Data lead owning strategy and roadmap while writing production code.",
+      "Delivered AI products for credit scoring, loan origination and risk — contract-tested feature tables for the ML team on Snowflake, dbt and Dagster, with a domain-driven Data Mesh.",
+      "Resolved a persistent Salesforce→Snowflake dynamic-pricing sync failure that had outlived multiple attempts.",
+    ] },
+  { co: "Kaia Health", role: "Lead Data Engineer", when: "NYC · HQ Munich · 2021–2023 · acquired by Sword Health", url: "https://www.kaiahealth.com", mark: "KH",
+    items: [
+      "Architected, developed and operated the production Snowflake platform behind AI-driven musculoskeletal therapy.",
+      "Led the Redshift→Snowflake migration end to end, designing Medallion and Lambda architectures for AI model training; Airflow and dbt pipelines feeding proprietary algorithms, with Great Expectations checks guarding production ML models.",
+    ] },
+  { co: "Thinx", role: "Lead Data Engineer", when: "NYC · 2021 · acquired by Kimberly-Clark", url: "https://shethinx.com", mark: "TX",
+    items: [
+      "Architected and developed the data platform from scratch — Airflow, AWS S3, Snowflake — integrating vendor systems (NetSuite, Tatari, Loop, Friendbuy, FormKeep), with reusable pipeline patterns, containerized deployments and CI/CD.",
+    ] },
+  { co: "N26", role: "Senior Data Engineer", when: "NYC/Berlin · HQ Berlin · 2019–2021", url: "https://n26.com", mark: "N2",
+    items: [
+      "Architected, developed and administered the production U.S. data platform (PostgreSQL, custom pipelines, Metabase) as part of the core global data team.",
+      "Partnered with Compliance on fraud-risk audits, mitigation systems and regulatory workflows for the U.S. banking entity.",
+    ] },
+  { co: "Cherre", role: "Senior Data Engineer", when: "NYC · 2018–2019", url: "https://www.cherre.com", mark: "CH",
+    items: [
+      "Core engineer on the award-winning Connected Data Platform — production pipelines over NYC government records and third-party APIs on GCP (BigQuery, Airflow, GKE, Looker); entity resolution and a master metadata layer turning addresses, assessments and transactions into a real-estate knowledge graph.",
+    ] },
+  { co: "ABC Fitness Solutions", role: "Lead Data Architect", when: "NYC · 2017–2018 · acquired by Thomas Bravo", url: "https://www.abcfitness.com", mark: "AB",
+    items: [
+      "Led an 8-person data team plus offshore contractors, reporting to the CTO, while hands-on in architecture and code; drove the monolith→microservices migration and built the cloud warehouse with PCI-compliant data standards (RDS, Redshift, Domo).",
+    ] },
+  { co: "Consulting", role: "Principal / Senior Consultant", when: "2009–2017", urls: ["https://www.dell.com", "https://www.mckesson.com", "https://www.usbank.com"], mark: "CO",
+    items: [
+      "Dell EMC: Greenplum/MPP implementations for NYSE Euronext, Orbitz, Wellington Management, KNotice and INTTRA. McKesson/RelayHealth: HIPAA-compliant data systems. U.S. Bank/Elavon: bank-acquisition migrations covering $2B+ revenue. Aloha Data: big data and analytics for PepsiCo, the Federal Reserve Bank of Philadelphia, the Australian Taxation Office, BC Hydro and the U.S. Department of Defense.",
+    ] },
+];
+const education = [
+  { school: "University of Texas at Austin", what: "M.S. Artificial Intelligence · thesis track", when: "2027", url: "https://www.utexas.edu", mark: "UT" },
+  { school: "University of Texas at Austin", what: "Post-graduate, AI & Machine Learning", when: "2023", url: "https://www.utexas.edu", mark: "UT" },
+  { school: "Carnegie Mellon University", what: "M.S. Software Engineering", when: "2008", url: "https://www.cmu.edu", mark: "CM" },
+  { school: "Franklin University", what: "B.S. Computer Science", when: "2006", url: "https://www.franklin.edu", mark: "FU" },
+];
+const skills: [string, string[]][] = [
+  ["Lakehouse", ["Apache Iceberg", "Lakekeeper", "Trino", "DuckDB", "Parquet", "MinIO", "Ceph"]],
+  ["AI & ML", ["PyTorch", "MLflow", "LangGraph", "Hugging Face", "vLLM", "RAG", "MCP", "pgvector"]],
+  ["Warehouses & Databases", ["Snowflake", "Databricks", "BigQuery", "Redshift", "Oracle", "PostgreSQL", "Neo4j"]],
+  ["Pipelines", ["Airflow", "Dagster", "dbt", "SQLMesh", "Spark", "Kafka", "Flink", "Fivetran", "dlt"]],
+  ["Quality & Observability", ["Data Contracts", "OpenMetadata", "Great Expectations", "Prometheus", "Grafana", "Sentry"]],
+  ["DevOps & IaC", ["Kubernetes", "Helm", "Docker", "Terraform", "Argo CD", "GitHub Actions"]],
+  ["Cloud", ["AWS", "GCP", "Azure"]],
+  ["Architecture", ["Data Mesh", "Medallion", "Lambda / Kappa", "Dimensional Modeling", "Microservices"]],
+  ["Languages", ["Python", "SQL", "PL/SQL", "Bash", "Java", "C++"]],
+];
+---
+<Layout title="Ken Lim — Experience" description="18+ years building production data and AI platforms — IAEA, Reach Financial, Kaia Health, Thinx, N26, Cherre, ABC Fitness Solutions, and a decade of consulting across finance, government, health, retail and utilities.">
+
+  <section class="pt-14 pb-8 sm:pt-20">
+    <p class="font-displaymono text-[10px] uppercase tracking-[0.35em] text-stone-400">03 — résumé</p>
+    <h1 class="mt-2 text-4xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">My experience<span class="text-stone-300">.</span></h1>
+  </section>
+
+  <section id="experience" class="border-t border-stone-200/80 py-12 dark:border-stone-800">
+    <div class="space-y-8">
+      {jobs.map((j) => (
+        <div data-reveal>
+          <div class="flex items-center gap-3">
+            {(j.urls ?? [j.url!]).map((u) => <CompanyLogo url={u} mark={j.mark} />)}
+            <h3 class="text-[17px] font-semibold tracking-tight text-stone-900 dark:text-stone-100">{j.co} <span class="font-normal text-stone-400 dark:text-stone-500">— {j.role} · {j.when}</span></h3>
+          </div>
+          <ul class="mt-2.5 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-stone-600 dark:text-stone-300">
+            {j.items.map((it) => <li>{it}</li>)}
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-12">
+      <h3 class="font-displaymono text-[10px] uppercase tracking-[0.35em] text-stone-400">Education</h3>
+      <ul class="mt-4 grid gap-3 sm:grid-cols-2">
+        {education.map((e) => (
+          <li class="flex items-center gap-3">
+            <CompanyLogo url={e.url} mark={e.mark} />
+            <p class="text-[15px] leading-snug text-stone-600 dark:text-stone-300"><strong class="font-semibold text-stone-900 dark:text-stone-100">{e.what}</strong> — {e.school} ({e.when})</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="mt-12">
+      <h3 class="font-displaymono text-[10px] uppercase tracking-[0.35em] text-stone-400">Skills</h3>
+      <dl class="mt-5 space-y-3">
+        {skills.map(([name, items]) => (
+          <div class="flex flex-col gap-1.5 sm:flex-row sm:gap-5">
+            <dt class="shrink-0 font-mono text-[10px] uppercase tracking-wider text-stone-500 sm:w-[170px] sm:pt-1">{name}</dt>
+            <dd class="flex flex-wrap gap-1.5">
+              {items.map((it) => (
+                <span class="rounded-full border border-stone-300/70 bg-[#fdfcf8] px-2.5 py-0.5 text-[12px] text-stone-600 dark:border-stone-700 dark:bg-zinc-900 dark:text-stone-300">{it}</span>
+              ))}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+</Layout>

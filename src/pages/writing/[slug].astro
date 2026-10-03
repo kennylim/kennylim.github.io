@@ -1,0 +1,24 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+import Layout from "../../layouts/Layout.astro";
+import { getCollection, render } from "astro:content";
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  return posts.map((p) => ({ params: { slug: p.id }, props: { post: p } }));
+}
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+<Layout noindex title={`${post.data.title} — Ken Lim`} description={post.data.description}>
+  <article class="pt-14 pb-8">
+    <a href={base + "/writing"} class="font-mono text-sm text-stone-400 hover:text-[#03aa5c] dark:text-stone-500 dark:hover:text-[#3cc287]">← writing</a>
+    <h1 class="mt-6 text-3xl font-bold tracking-tight sm:text-4xl">{post.data.title}</h1>
+    <p class="mt-3 font-mono text-xs text-stone-400 dark:text-stone-500">
+      {post.data.date.toISOString().slice(0, 10)}
+      {post.data.tags.length > 0 && <span> · {post.data.tags.join(" · ")}</span>}
+    </p>
+    <div class="prose prose-stone mt-10 max-w-[72ch] dark:prose-invert prose-a:text-[#03aa5c] dark:prose-a:text-[#3cc287]">
+      <Content />
+    </div>
+  </article>
+</Layout>

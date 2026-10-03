@@ -1,0 +1,59 @@
+---
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+import Layout from "../layouts/Layout.astro";
+---
+<Layout title="Ken Lim — Full-Stack Data & AI" description="Ken Lim builds the whole path from raw data to production AI: pipelines, curated and governed data, ML models, and AI agents. Hands-on data tech lead, 18+ years across fintech, healthtech, proptech and the public sector.">
+
+  <!-- letterhead / hero -->
+  <section class="relative pt-16 pb-10 sm:pt-24">
+    <h1 class="font-display text-4xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+      Full-Stack Data &amp; AI<span class="text-stone-300">.</span>
+    </h1>
+    <p class="mt-6 font-mono text-[12.5px] uppercase tracking-[0.18em] text-stone-600 dark:text-stone-300">New York City · 18+ years experience · U.S. citizen</p>
+    <div class="mt-6 flex flex-wrap justify-start gap-x-6 gap-y-2 font-mono text-[12px]">
+      <a class="text-[#03aa5c] hover:underline dark:text-[#3cc287]" href="mailto:mail@kennylim.com">mail@kennylim.com</a>
+      <a class="text-stone-500 hover:text-[#03aa5c] dark:text-stone-400 dark:hover:text-stone-100" href="tel:+19298889061">+1 (929) 888-9061</a>
+      <a class="text-stone-500 hover:text-[#03aa5c] dark:text-stone-400 dark:hover:text-stone-100" href="https://linkedin.com/in/kenny-lim" rel="noopener" target="_blank">LinkedIn ↗</a>
+    </div>
+  </section>
+
+  <!-- 1. about me -->
+  <section data-reveal class="border-t border-stone-200/80 py-12 dark:border-stone-800">
+    <p class="font-displaymono text-[10px] uppercase tracking-[0.35em] text-stone-400">01 — who I am</p>
+    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">About me</h2>
+    <div class="mt-5 space-y-4 text-[16px] leading-relaxed text-stone-600 dark:text-stone-300">
+      <p>
+        I'm a hands-on data and AI lead with 18+ years of turning messy, complex data into
+        platforms and data and AI products people rely on.
+      </p>
+      <p>
+        My approach is simple: understand the real needs of stakeholders, map the gap between
+        where the data is and where it should be, then architect and build what closes it,
+        from pipelines, curated and governed data, and BI to ML models and RAG and agent
+        services in production. Along the way, I build and lead the data teams that keep it
+        running.
+      </p>
+      <p>
+        I've never stopped doing the elbow-grease work, and I eat my own dog food: I write the
+        code, ship it, and run it. Having owned every layer, I know what a design really costs
+        to build and maintain. That means fewer handoffs, faster delivery, and systems that
+        last.
+      </p>
+      <p>
+        Consulting taught me to work this way. After earning my M.S. in Software Engineering
+        from Carnegie Mellon, I spent a decade delivering big-data platforms for clients
+        ranging from startups to Fortune 500 companies and the U.S. Department of Defense,
+        where every engagement had to deliver real results on a real budget. Since then, I've
+        built data and AI platforms in-house at companies like N26 across fintech, healthtech,
+        SaaS, and proptech, and was part of three successful exits. Today I'm at the
+        International Atomic Energy Agency, where I architected and built an air-gapped
+        lakehouse audited and validated by PwC. I'm also pursuing a thesis-track M.S. in
+        Artificial Intelligence at UT Austin.
+      </p>
+    </div>
+    <p class="mt-8 font-mono text-[12px] text-stone-500 dark:text-stone-400">
+      How I work, stage by stage → <a class="text-[#03aa5c] hover:underline dark:text-[#3cc287]" href={base + "/what-i-do"}>What I do</a>
+    </p>
+  </section>
+
+</Layout>
