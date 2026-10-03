@@ -1,0 +1,25 @@
+---
+import cmuLogo from "../assets/cmu.png?url";
+import usbankLogo from "../assets/usbank.png?url";
+interface Props { url: string; mark: string; size?: string }
+const { url, mark, size = "h-9 w-9" } = Astro.props;
+const host = new URL(url).hostname;
+const src = host.includes("cmu.edu") ? cmuLogo
+  : host.includes("usbank.com") ? usbankLogo
+  : `https://www.google.com/s2/favicons?sz=64&domain=${host}`;
+---
+<span class={`relative grid ${size} shrink-0 place-items-center overflow-hidden rounded-lg border border-stone-200 bg-white font-mono text-[11px] font-bold text-stone-500 dark:border-stone-700 dark:bg-zinc-800 dark:text-stone-300`}>
+  <img src={src} alt="" class="logo absolute inset-0 h-full w-full object-contain p-1" loading="lazy" width="36" height="36" />
+  <span class="fallback">{mark}</span>
+</span>
+<script>
+  document.querySelectorAll<HTMLImageElement>("img.logo").forEach((img) => {
+    const fb = img.parentElement?.querySelector(".fallback");
+    img.addEventListener("error", () => img.remove());
+    img.addEventListener("load", () => {
+      if (img.naturalWidth > 1 && fb) fb.style.display = "none";
+      else img.remove();
+    });
+    if (img.complete) { if (img.naturalWidth > 1 && fb) fb.style.display = "none"; else img.remove(); }
+  });
+</script>

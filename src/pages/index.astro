@@ -1,21 +1,14 @@
 ---
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 import Layout from "../layouts/Layout.astro";
-import FlowDiagram from "../components/FlowDiagram.astro";
-import ExperienceJourney from "../components/ExperienceJourney.astro";
 ---
-<Layout title="Ken Lim — Full-Stack Data & AI" description="Ken Lim builds the whole path from raw data to shipped AI products: pipelines and platforms, curation and governance, ML models, and RAG and agent services, observable and cataloged in production. 18+ years across fintech, healthtech, proptech and the public sector.">
+<Layout title="Ken Lim — Full-Stack Data & AI" description="Ken Lim builds the whole path from raw data to production AI: pipelines, curated and governed data, ML models, and AI agents. Hands-on data tech lead, 18+ years across fintech, healthtech, proptech and the public sector.">
 
   <!-- letterhead / hero -->
-  <section class="relative pt-16 pb-12 sm:pt-24">
-    <h1 class="whitespace-nowrap font-display font-semibold leading-[1.1] tracking-tight text-stone-900 dark:text-stone-100" style="font-size:clamp(1.9rem,5.6vw,3rem)">
+  <section class="relative pt-16 pb-10 sm:pt-24">
+    <h1 class="font-display text-4xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
       Full-Stack Data &amp; AI<span class="text-stone-300">.</span>
     </h1>
-    <p class="mt-7 max-w-xl text-lg leading-relaxed text-stone-600 dark:text-stone-300">
-      I build the whole path from raw data to shipped AI products: the pipelines and platforms
-      that ingest and move data, the curation and governance that make it trustworthy, the ML
-      models trained on it, and the RAG and agent services that turn it into smart automation.
-      All of it is observable and cataloged in production.
-    </p>
     <p class="mt-6 font-mono text-[12.5px] uppercase tracking-[0.18em] text-stone-600 dark:text-stone-300">New York City · 18+ years experience · U.S. citizen</p>
     <div class="mt-6 flex flex-wrap justify-start gap-x-6 gap-y-2 font-mono text-[12px]">
       <a class="text-[#03aa5c] hover:underline dark:text-[#3cc287]" href="mailto:mail@kennylim.com">mail@kennylim.com</a>
@@ -30,46 +23,36 @@ import ExperienceJourney from "../components/ExperienceJourney.astro";
     <h2 class="mt-2 text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">About me</h2>
     <div class="mt-5 space-y-4 text-[16px] leading-relaxed text-stone-600 dark:text-stone-300">
       <p>
-        I'm a hands-on data tech lead, and for more than 18 years I've been turning messy,
-        complex data into platforms people rely on.
+        I'm a hands-on data and AI lead with 18+ years of turning messy, complex data into
+        platforms and data and AI products people rely on.
       </p>
       <p>
-        It started with a decade of consulting. I built big-data platforms for clients in
-        finance, government, healthcare, retail, and utilities around the world. Every
-        engagement reinforced the same lessons: be pragmatic, stay results-driven, watch costs
-        closely, and say plainly what's working and what isn't.
+        My approach is simple: understand the real needs of stakeholders, map the gap between
+        where the data is and where it should be, then architect and build what closes it,
+        from pipelines, curated and governed data, and BI to ML models and RAG and agent
+        services in production. Along the way, I build and lead the data teams that keep it
+        running.
       </p>
       <p>
-        Since then, I've built data and AI platforms across fintech, healthtech, consumer and
-        enterprise SaaS, proptech, and the public sector. I was part of three acquisitions
-        along the way.
+        I've never stopped doing the elbow-grease work, and I eat my own dog food: I write the
+        code, ship it, and run it. Having owned every layer, I know what a design really costs
+        to build and maintain. That means fewer handoffs, faster delivery, and systems that
+        last.
       </p>
       <p>
-        Today my work covers the full arc. I set the data strategy, design the architecture,
-        write the production code, and run the platforms at scale. I also build and grow
-        high-performing data teams, and I've led onshore and offshore consultants working
-        alongside them.
+        Consulting taught me to work this way. After earning my M.S. in Software Engineering
+        from Carnegie Mellon, I spent a decade delivering big-data platforms for clients
+        ranging from startups to Fortune 500 companies and the U.S. Department of Defense,
+        where every engagement had to deliver real results on a real budget. Since then, I've
+        built data and AI platforms in-house at companies like N26 across fintech, healthtech,
+        SaaS, and proptech, and was part of three successful exits. Today I'm at the
+        International Atomic Energy Agency, where I architected and built an air-gapped
+        lakehouse audited and validated by PwC. I'm also pursuing a thesis-track M.S. in
+        Artificial Intelligence at UT Austin.
       </p>
-      <p>
-        One thing hasn't changed: I still do the elbow-grease work. I eat my own dog food. I
-        write the code, take it to production, and keep running it myself — monitoring,
-        scaling, tuning — as it grows.
-      </p>
-    </div>
-  </section>
-
-  <!-- 2. what I do -->
-  <section id="do" data-reveal class="scroll-mt-6 border-t border-stone-200/80 py-12 dark:border-stone-800">
-    <p class="font-displaymono text-[10px] uppercase tracking-[0.35em] text-stone-400">02 — the work</p>
-    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">What I do</h2>
-    <p class="mt-5 text-[16px] leading-relaxed text-stone-600 dark:text-stone-300">
-      The five stages below — what each one produces.
-    </p>
-    <div class="mt-9">
-      <FlowDiagram />
     </div>
     <p class="mt-8 font-mono text-[12px] text-stone-500 dark:text-stone-400">
-      Where I've done it → <a class="text-[#03aa5c] hover:underline dark:text-[#3cc287]" href="/experience">Experience</a>
+      How I work, stage by stage → <a class="text-[#03aa5c] hover:underline dark:text-[#3cc287]" href={base + "/what-i-do"}>What I do</a>
     </p>
   </section>
 

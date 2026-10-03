@@ -7,8 +7,7 @@ import mdx from "@astrojs/mdx";
 
 // https://astro.build/config
 export default defineConfig({
-  // Set to your Pages URL, e.g. "https://kenlim.github.io" (project pages need the repo name appended)
-  site: "https://USERNAME.github.io",
+  site: "https://kennylim.com",
 
   vite: {
     plugins: [tailwindcss()]

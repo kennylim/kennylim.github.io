@@ -28,11 +28,9 @@ git add -A && git commit -m "post: the title of my piece" && git push
 
 ## One-time deploy to GitHub Pages
 
-Repo exists: **https://github.com/kennylim/kennylim-site** (private, branch `main`). When you're ready to deploy from this repo:
+The live site deploys from **https://github.com/kennylim/kennylim.github.io** (public, custom domain kennylim.com via `public/CNAME`). `site: "https://kennylim.com"` is already set in `astro.config.mjs`; no `base` needed.
 
-1. In `astro.config.mjs` set `site: "https://kennylim.github.io"` and `base: "/kennylim-site"`.
-2. Make the repo public (private Pages needs a paid plan): `gh repo edit kennylim/kennylim-site --visibility public`
-3. **Settings → Pages → Source: GitHub Actions** — the existing workflow then builds and deploys on every push; live at `kennylim.github.io/kennylim-site`.
+Pushing to `main` there triggers `.github/workflows/deploy.yml` (GitHub Actions Pages). The kennylim/kennylim-site repo is the private working mirror.
 
 Optional custom domain (`kennylim.com`): add a `CNAME` file with the domain and point DNS at GitHub ([docs](https://docs.github.com/pages/configuration/custom-domain-and-emails)).
 

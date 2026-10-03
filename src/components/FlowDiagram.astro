@@ -1,49 +1,68 @@
 ---
 const stages = [
   {
-    n: "01", title: "Understand", icon: "doc",
+    n: "01", title: "Understand & plan", icon: "doc",
     items: [
-      "Problem discovery with the people who own it",
-      "Audit of the current state, gaps and constraints",
-      "Feasible architectures, costed and documented",
+      "Stakeholder discovery and requirements",
+      "Data and platform audits",
+      "Gap analysis, current to target state",
+      "Strategy, roadmaps and costed architectures",
     ],
   },
   {
     n: "02", title: "Data platform", icon: "db", medallion: true,
     items: [
-      "Ingestion — batch, CDC and streaming",
-      "Lakehouse and warehouse on open table formats",
-      "Medallion modeling with dbt, Spark and Trino",
-      "Data quality, contracts, catalog, lineage and access",
-      "Deployed as code; scaled and administered in production",
+      "Lakehouse, lakebase and warehouse (Iceberg, Snowflake, Databricks)",
+      "Batch and streaming pipelines (Airflow, dbt, Spark, Kafka, Flink)",
+      "Curated models: Medallion, dimensional, Data Mesh",
+      "Master data and entity resolution",
+      "Governance: contracts, quality, lineage, access and compliance",
+      "Microservices and APIs on Kubernetes",
     ],
   },
   {
     n: "03", title: "BI & data products", icon: "chart",
     items: [
-      "One governed semantic layer for metrics",
-      "Datasets and APIs shipped as products",
-      "Dashboards and self-service, with SLAs",
+      "Semantic layer and governed metrics",
+      "Data products with owners, contracts and SLAs",
+      "Self-service discovery through catalogs",
+      "Adoption and value tracked with KPIs",
     ],
   },
   {
     n: "04", title: "ML platform & models", icon: "nn",
     items: [
       "Feature stores and vector search",
-      "Training and fine-tuning pipelines",
-      "Evals, registries and scalable serving",
+      "Custom models, trained and tuned (PyTorch, MLflow)",
+      "Fine-tuning, evals and model registries",
+      "Experimentation and MLOps CI/CD",
+      "Scalable serving and inference (vLLM)",
       "Model and data drift monitoring",
     ],
   },
   {
     n: "05", title: "AI products", icon: "spark",
     items: [
-      "RAG systems and agents (MCP, LangGraph)",
-      "ML-powered features in production",
-      "Guardrails, lineage and audit trails",
+      "RAG grounded in governed data",
+      "Agents and multi-agent systems with MCP (LangGraph)",
+      "ML and LLM features in production products",
+      "Prompt versioning, evals and tracing",
+      "Guardrails and audit trails (NIST AI RMF)",
+      "Token, latency and GPU cost optimization",
+    ],
+  },
+  {
+    n: "06", title: "Lead & operate", icon: "users",
+    items: [
+      "Build and mentor high-performing data and AI teams",
+      "Lead onshore and offshore partners",
+      "Observability and SLOs (Prometheus, Grafana)",
+      "Incident response and reliability",
+      "FinOps for data and AI spend",
     ],
   },
 ];
+
 ---
 <figure class="select-none">
   <div class="relative">
@@ -70,6 +89,7 @@ const stages = [
               {st.icon === "chart" && <path d="M4 20V10M10 20V4M16 20v-8M21 20H3"/>}
               {st.icon === "nn" && <g><circle cx="5" cy="6" r="1.6"/><circle cx="5" cy="18" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="6" r="1.6"/><circle cx="19" cy="18" r="1.6"/><path d="M6.5 6.8 10.6 11M6.5 17.2 10.6 13M13.4 11 17.5 6.8M13.4 13l4.1 4.2" opacity=".7"/></g>}
               {st.icon === "spark" && <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>}
+              {st.icon === "users" && <g><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></g>}
             </svg>
             <span class="absolute -right-1.5 -top-1.5 rounded-full border border-stone-200 bg-[#fbf9f3] px-1.5 font-mono text-[9px] tracking-widest text-stone-400 dark:border-stone-700 dark:bg-stone-900">{st.n}</span>
           </span>
